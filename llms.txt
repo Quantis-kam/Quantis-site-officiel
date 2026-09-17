@@ -20,6 +20,6 @@
 QUANTIS refuse le logiciel jetable et conçoit des systèmes robustes conçus pour durer des décennies.
 
 ## Liens Utiles
-- Site Officiel : https://quantis-kam.github.io/Quantis-site-officiel/
-- Cartes Studio : https://quantis-kam.github.io/Quantis-site-officiel/cartes.html
+- Site Officiel : https://quantisbf.com/
+- Cartes Studio : https://quantisbf.com/cartes.html
 - Contact : contact@quantis.tech

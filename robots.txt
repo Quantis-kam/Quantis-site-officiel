@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 
 # Sitemap indexing
-Sitemap: https://quantis-kam.github.io/Quantis-site-officiel/sitemap.xml
+Sitemap: https://quantisbf.com/sitemap.xml
