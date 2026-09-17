@@ -83,11 +83,11 @@ body {
 .particle-stage-fullscreen {
   position: relative;
   width: 100vw;
-  height: 95vh;
-  min-height: 680px;
+  height: 86vh;
+  min-height: 560px;
   left: 50%;
   transform: translateX(-50%);
-  margin: 32px 0 48px;
+  margin: 28px 0 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,12 +105,12 @@ body {
 .particle-stage-fullscreen canvas {
   position: absolute;
   inset: 0;
-  width: 100vw !important;
-  height: 95vh !important;
+  width: 100% !important;
+  height: 100% !important;
   display: block;
   background: transparent;
-  mask-image: radial-gradient(ellipse 92% 86% at 50% 50%, black 65%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 92% 86% at 50% 50%, black 65%, transparent 100%);
+  mask-image: radial-gradient(ellipse 98% 95% at 50% 50%, black 82%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 98% 95% at 50% 50%, black 82%, transparent 100%);
 }
 
 .stage-overlay {
@@ -283,8 +283,8 @@ body {
   transition: color var(--transition-fast);
 }
 
-.nav-secondary-link:hover {
-  color: var(--text-white);
+.mobile-only-nav {
+  display: none;
 }
 
 .btn-pill-white {
@@ -586,8 +586,16 @@ main {
   align-items: center;
   margin-bottom: 36px;
   overflow-x: auto;
-  padding: 4px 8px;
+  padding: 6px 16px;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pills-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .pills-bar {
@@ -1313,20 +1321,48 @@ footer {
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 0 20px;
+    padding: 0 16px;
   }
   .nav-menu {
+    display: none;
+  }
+  .nav-actions .nav-secondary-link,
+  .nav-actions .btn-pill-white {
     display: none;
   }
   .mobile-toggle {
     display: block;
   }
+  .mobile-only-nav {
+    display: block;
+  }
   .hero-brand-title {
-    font-size: 2.8rem;
+    font-size: 2.75rem;
   }
   .particle-stage-fullscreen {
-    height: 85vh;
-    min-height: 520px;
+    height: 56vh;
+    min-height: 380px;
+    max-height: 480px;
+    margin: 16px 0 24px;
+  }
+  .stage-overlay {
+    margin-bottom: 20px;
+  }
+  .stage-tag {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+  }
+  .pills-scroll-wrapper {
+    justify-content: flex-start;
+  }
+  .benchmark-display-card {
+    padding: 24px 18px 20px;
+  }
+  .benchmark-badge-title {
+    font-size: 1.02rem;
+  }
+  .benchmark-graph-stage {
+    height: 260px;
   }
   .principles-grid-cards {
     grid-template-columns: 1fr;
@@ -1342,5 +1378,57 @@ footer {
   .footer-bottom-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-quantis {
+    padding: calc(var(--header-h) + 16px) 16px 36px;
+    min-height: 94vh;
+  }
+  .hero-pill-badge {
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    max-width: 95%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
+  }
+  .hero-brand-title {
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    margin: 10px 0 10px;
+  }
+  .hero-sub {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 22px;
+    padding: 0 4px;
+  }
+  .hero-cta {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    gap: 12px;
+    margin: 0 auto;
+  }
+  .hero-cta .btn-pill-white,
+  .hero-cta .btn-pill-ghost {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    padding: 13px 20px;
+  }
+  .editorial-lead {
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+  .quote-text {
+    font-size: 1.25rem;
+    line-height: 1.5;
+  }
+  .wide-container,
+  .editorial-container {
+    padding: 0 16px;
   }
 }

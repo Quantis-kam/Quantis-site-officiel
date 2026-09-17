@@ -40,6 +40,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     });
+
+    navMenu.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", () => {
+        if (window.innerWidth <= 768) {
+          navMenu.style.display = "none";
+        }
+      });
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -763,15 +771,73 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Resize
-      function handleResize() {
+      // Touch drag rotation for mobile & tablet
+      let touchDown = false, tx = 0, ty = 0;
+      container.addEventListener("touchstart", e => {
+        if (e.touches.length === 1) {
+          touchDown = true;
+          tx = e.touches[0].clientX;
+          ty = e.touches[0].clientY;
+        }
+      }, { passive: true });
+      window.addEventListener("touchend", () => { touchDown = false; }, { passive: true });
+      window.addEventListener("touchcancel", () => { touchDown = false; }, { passive: true });
+      window.addEventListener("touchmove", e => {
+        if (touchDown && e.touches.length === 1) {
+          const dx = e.touches[0].clientX - tx;
+          const dy = e.touches[0].clientY - ty;
+          group.rotation.y += dx * 0.007;
+          group.rotation.x += dy * 0.007;
+          tx = e.touches[0].clientX;
+          ty = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      // Responsive layout handler
+      function updateResponsiveLayout() {
         const rw = container.clientWidth || window.innerWidth;
         const rh = container.clientHeight || window.innerHeight;
         camera.aspect = rw / rh;
         camera.updateProjectionMatrix();
         renderer.setSize(rw, rh);
+
+        const isMobile = rw < 768;
+        const isTablet = rw >= 768 && rw < 1024;
+
+        if (isHero) {
+          if (isMobile) {
+            // Galaxy on mobile: pulled back to cameraZ 88, offsetY -18.5 to sit elegantly below stacked mobile CTA buttons
+            camera.position.z = 88;
+            group.position.y = -18.5;
+          } else if (isTablet) {
+            camera.position.z = 76;
+            group.position.y = -14.5;
+          } else {
+            camera.position.z = camZ;
+            group.position.y = opts.offsetY !== undefined ? opts.offsetY : -12.5;
+          }
+        } else {
+          if (isMobile) {
+            // Section constellations: pull camera back to 82 so the ~24-unit shape has ample margin on narrow screens
+            camera.position.z = Math.max(camZ * 1.50, 82);
+            if (opts.offsetY) group.position.y = opts.offsetY;
+          } else if (isTablet) {
+            camera.position.z = Math.max(camZ * 1.20, 66);
+            if (opts.offsetY) group.position.y = opts.offsetY;
+          } else {
+            camera.position.z = camZ;
+            if (opts.offsetY) group.position.y = opts.offsetY;
+          }
+        }
+
+        // Calibrate star particle sizes: on mobile, fine pinpoint stars preserve luxury cosmic feel without blurry clumping
+        const sizeFactor = isMobile ? 0.60 : (isTablet ? 0.82 : 1.0);
+        matBase.size  = 2.75 * sizeFactor;
+        matPearl.size = 4.80 * sizeFactor;
+        matFlare.size = 13.5 * sizeFactor;
       }
-      window.addEventListener("resize", handleResize);
+      window.addEventListener("resize", updateResponsiveLayout);
+      updateResponsiveLayout();
 
       // Animation loop
       const clock = new THREE.Clock();
@@ -803,7 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Dynamic motion:
         // Galaxy & Rosette rotate slowly around Z
         // Delta Loop and Serif Q stay upright with gentle parallax tilt
-        if (!drag) {
+        if (!drag && !touchDown) {
           if (allowZRotation) {
             group.rotation.z += 0.04 * dt;
           } else {
