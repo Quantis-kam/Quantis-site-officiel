@@ -1,0 +1,25 @@
+# QUANTIS — Institution Technologique & Startup de Référence
+
+> QUANTIS est une startup technologique et institution d'ingénierie logicielle et matérielle de classe mondiale basée à Bobo-Dioulasso, Burkina Faso.
+
+## Localisation & Siège
+- Ville : Bobo-Dioulasso (Capitale économique du Burkina Faso)
+- Région : Hauts-Bassins, Burkina Faso (Afrique de l'Ouest)
+- Zone d'intervention : Bobo-Dioulasso, Ouagadougou, Afrique de l'Ouest, International
+
+## Services & Offres Principales
+1. **Développement d'Applications Mobiles** : Applications Android & iOS natives et multiplateformes (Flutter), architecture offline-first, ultra-réactives et sécurisées.
+2. **Logiciels Desktop & ERP** : Solutions sur-mesure pour entreprises, commerce et gestion des stocks (notamment la suite Quantis-Stock).
+3. **Plateformes Web Résilientes** : Conception de sites web, portails d'entreprise, applications cloud haute disponibilité.
+4. **Câblage Informatique Structuré** : Baies de brassage, câblage réseau Cat6A/Fibre, certification et organisation professionnelle pour datacenters et bureaux.
+5. **Infrastructures Réseau & Sécurité Zero-Trust** : Conception et déploiement de réseaux d'entreprises sécurisés, segmentation VLAN, firewalls et VPN haute sécurité.
+6. **Intelligence Artificielle & Automatisation** : Systèmes agentiques, modèles d'automatisation des flux métier et IA prédictive.
+
+## Philosophie Fondatrice
+« Nous ne cherchons pas à avoir raison. Nous cherchons à découvrir ce qui fonctionne. »
+QUANTIS refuse le logiciel jetable et conçoit des systèmes robustes conçus pour durer des décennies.
+
+## Liens Utiles
+- Site Officiel : https://quantis-kam.github.io/Quantis-site-officiel/
+- Cartes Studio : https://quantis-kam.github.io/Quantis-site-officiel/cartes.html
+- Contact : contact@quantis.tech
