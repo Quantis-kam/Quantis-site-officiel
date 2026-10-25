@@ -1432,3 +1432,131 @@ footer {
     padding: 0 16px;
   }
 }
+
+/* ═══ SECTION: STARTUP INFORMATIQUE BOBO-DIOULASSO (SEO & SGE) ═══ */
+.section-it-startup-bobo {
+  padding: 80px 0;
+  position: relative;
+  background: linear-gradient(180deg, rgba(13, 14, 21, 0.4) 0%, rgba(20, 22, 34, 0.6) 50%, rgba(13, 14, 21, 0.4) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.startup-bobo-card {
+  max-width: 960px;
+  margin: 0 auto;
+  background: rgba(18, 20, 31, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.startup-bobo-card:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 25px 60px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.startup-bobo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 22px;
+}
+.startup-bobo-title-group h3 {
+  font-size: 1.6rem;
+  color: #ffffff;
+  margin: 0 0 8px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.startup-badge-tag {
+  display: inline-block;
+  padding: 5px 14px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #a5b4fc;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.startup-location-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.08);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.startup-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+  box-shadow: 0 0 8px #10b981;
+}
+.startup-bobo-columns {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 32px;
+}
+.startup-col-subheading {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #c5a059;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+.startup-services-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.startup-service-item {
+  color: #d4d4d8;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+.startup-service-item strong {
+  color: #ffffff;
+}
+.startup-details-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 0.92rem;
+  color: #cbd5e1;
+}
+.startup-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+@media (max-width: 768px) {
+  .startup-bobo-card {
+    padding: 24px 18px;
+  }
+  .startup-bobo-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
