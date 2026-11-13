@@ -1,1131 +1,873 @@
-/* ==========================================================================
-   QUANTIS — L'Ingénierie de Demain
-   Per-Section Particle Constellations — No Visible Containers
-   Each section has its own shape, particles float freely (no box feeling)
-   ========================================================================== */
-
+/**
+ * ============================================================================
+ * QUANTIS — Orchestrateur Principal UI, Télémétrie & Interactions
+ * ============================================================================
+ */
 document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
 
-  // ═══════════════════════════════════════════════════════════════════════════
+  // --------------------------------------------------------------------------
   // 1. PRELOADER
-  // ═══════════════════════════════════════════════════════════════════════════
+  // --------------------------------------------------------------------------
   const preloader = document.getElementById("preloader");
-  window.addEventListener("load", () => {
-    setTimeout(() => { if (preloader) preloader.classList.add("fade-out"); }, 400);
-  });
-  setTimeout(() => {
-    if (preloader && !preloader.classList.contains("fade-out")) preloader.classList.add("fade-out");
-  }, 2000);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 2. NAVBAR
-  // ═══════════════════════════════════════════════════════════════════════════
-  const navbar = document.getElementById("navbar");
-  window.addEventListener("scroll", () => {
-    if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40);
-  });
-
-  const mobileToggle = document.getElementById("mobileToggle");
-  const navMenu = document.getElementById("navMenu");
-  if (mobileToggle && navMenu) {
-    mobileToggle.addEventListener("click", () => {
-      const isVisible = navMenu.style.display === "flex";
-      navMenu.style.display = isVisible ? "none" : "flex";
-      if (!isVisible) {
-        Object.assign(navMenu.style, {
-          position: "absolute", top: "var(--header-h)", left: "0", right: "0",
-          flexDirection: "column", background: "rgba(8, 8, 12, 0.96)",
-          backdropFilter: "blur(24px)", padding: "28px 24px",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.1)", zIndex: "999", gap: "20px"
-        });
-      }
-    });
-
-    navMenu.querySelectorAll("a").forEach(a => {
-      a.addEventListener("click", () => {
-        if (window.innerWidth <= 768) {
-          navMenu.style.display = "none";
-        }
-      });
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 3. SCROLL REVEAL
-  // ═══════════════════════════════════════════════════════════════════════════
-  const revealElements = document.querySelectorAll("[data-reveal]");
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add("revealed"), i * 60);
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: "0px 0px -40px 0px" });
-  revealElements.forEach(el => revealObserver.observe(el));
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 4. AMBIENT 2D STARFIELD BACKGROUND
-  // ═══════════════════════════════════════════════════════════════════════════
-  const bgCanvas = document.getElementById("bg-canvas");
-  if (bgCanvas) {
-    const ctx = bgCanvas.getContext("2d");
-    let width = (bgCanvas.width = window.innerWidth);
-    let height = (bgCanvas.height = window.innerHeight);
-    window.addEventListener("resize", () => {
-      width = bgCanvas.width = window.innerWidth;
-      height = bgCanvas.height = window.innerHeight;
-      initBgStars();
-    });
-
-    let stars = [];
-    const starColors = [
-      "rgba(255, 255, 255,", "rgba(255, 255, 255,", "rgba(255, 235, 190,",
-      "rgba(147, 197, 253,", "rgba(56, 189, 248,", "rgba(197, 160, 89,"
-    ];
-
-    function initBgStars() {
-      stars = [];
-      for (let i = 0; i < 450; i++) {
-        const colorPrefix = starColors[Math.floor(Math.random() * starColors.length)];
-        const isBright = Math.random() > 0.94;
-        stars.push({
-          x: Math.random() * width, y: Math.random() * height,
-          radius: isBright ? (Math.random() * 1.3 + 1.0) : (Math.random() * 0.8 + 0.3),
-          baseAlpha: isBright ? (Math.random() * 0.4 + 0.6) : (Math.random() * 0.35 + 0.15),
-          twinkleSpeed: Math.random() * 0.02 + 0.005,
-          twinklePhase: Math.random() * Math.PI * 2, colorPrefix
-        });
-      }
-    }
-    initBgStars();
-
-    let mouseX = 0, mouseY = 0, targetMouseX = 0, targetMouseY = 0;
-    window.addEventListener("mousemove", (e) => {
-      targetMouseX = (e.clientX / width - 0.5) * 25;
-      targetMouseY = (e.clientY / height - 0.5) * 20;
-    });
-
-    let tick = 0;
-    function renderBg() {
-      tick++;
-      ctx.clearRect(0, 0, width, height);
-      mouseX += (targetMouseX - mouseX) * 0.04;
-      mouseY += (targetMouseY - mouseY) * 0.04;
-      for (const s of stars) {
-        const alpha = Math.max(0.08, Math.min(1, s.baseAlpha + Math.sin(tick * s.twinkleSpeed + s.twinklePhase) * 0.25));
-        const px = s.x + mouseX * 0.3;
-        const py = s.y + mouseY * 0.3;
-        ctx.beginPath();
-        ctx.arc(px, py, s.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${s.colorPrefix} ${alpha})`;
-        ctx.fill();
-        if (s.radius > 1.1 && alpha > 0.65) {
-          ctx.beginPath();
-          ctx.arc(px, py, s.radius * 2.2, 0, Math.PI * 2);
-          ctx.fillStyle = `${s.colorPrefix} ${alpha * 0.25})`;
-          ctx.fill();
-        }
-      }
-      requestAnimationFrame(renderBg);
-    }
-    renderBg();
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 5. THREE.JS — PER-SECTION PARTICLE CONSTELLATIONS
-  //    Each section has its OWN canvas with its OWN shape.
-  //    Containers are full-width, borderless, transparent — NO BOX FEELING.
-  //    Particles assemble when scrolled into view, disperse when leaving.
-  // ═══════════════════════════════════════════════════════════════════════════
-  if (typeof THREE !== "undefined") {
-
-    // ── Celestial Star Textures (OpenAI Astra Exact Reference Fidelity) ──
-    // 1. Pristine circular stellar disc (compact solid core + exponential astronomical falloff)
-    function createDiscTexture() {
-      const size = 128;
-      const c = document.createElement("canvas");
-      c.width = size; c.height = size;
-      const ctx = c.getContext("2d");
-      const cx = size / 2;
-
-      const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx * 0.72);
-      g.addColorStop(0.00, "rgba(255, 255, 255, 1.0)");
-      g.addColorStop(0.28, "rgba(255, 255, 255, 1.0)"); // Solid brilliant core
-      g.addColorStop(0.48, "rgba(242, 248, 255, 0.75)");
-      g.addColorStop(0.72, "rgba(195, 222, 255, 0.20)");
-      g.addColorStop(0.88, "rgba(160, 200, 255, 0.03)");
-      g.addColorStop(1.00, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, size, size);
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    // 2. Radiant Diamond Star with needle-sharp 4-point diffraction cross (sparkle / lens flare)
-    function createFlareTexture() {
-      const size = 256;
-      const c = document.createElement("canvas");
-      c.width = size; c.height = size;
-      const ctx = c.getContext("2d");
-      const cx = size / 2;
-
-      // Diamond core
-      const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, cx * 0.42);
-      g.addColorStop(0.00, "rgba(255, 255, 255, 1.0)");
-      g.addColorStop(0.20, "rgba(255, 255, 255, 1.0)");
-      g.addColorStop(0.42, "rgba(240, 248, 255, 0.75)");
-      g.addColorStop(0.68, "rgba(180, 215, 255, 0.20)");
-      g.addColorStop(1.00, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, size, size);
-
-      // 4 needle-sharp diffraction cross spikes
-      ctx.globalCompositeOperation = "screen";
-      const drawSpike = (x1, y1, x2, y2, w) => {
-        const sg = ctx.createLinearGradient(x1, y1, x2, y2);
-        sg.addColorStop(0.00, "rgba(255, 255, 255, 0)");
-        sg.addColorStop(0.30, "rgba(225, 242, 255, 0.35)");
-        sg.addColorStop(0.50, "rgba(255, 255, 255, 1.0)");
-        sg.addColorStop(0.70, "rgba(225, 242, 255, 0.35)");
-        sg.addColorStop(1.00, "rgba(255, 255, 255, 0)");
-        ctx.strokeStyle = sg;
-        ctx.lineWidth = w;
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-      };
-
-      // Primary needle spikes
-      drawSpike(4, cx, size - 4, cx, 1.8);
-      drawSpike(cx, 4, cx, size - 4, 1.8);
-
-      // Secondary luminous core spikes
-      drawSpike(cx - 55, cx, cx + 55, cx, 3.2);
-      drawSpike(cx, cx - 55, cx, cx + 55, 3.2);
-
-      // Subtle 45° diagonal glints
-      drawSpike(cx - 40, cx - 40, cx + 40, cx + 40, 0.95);
-      drawSpike(cx + 40, cx - 40, cx - 40, cx + 40, 0.95);
-
-      ctx.globalCompositeOperation = "source-over";
-      const tex = new THREE.CanvasTexture(c);
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    const discTexture = createDiscTexture();
-    const flareTexture = createFlareTexture();
-
-    // Astronomical palette: pure diamond white, ice blues, soft peach/apricot/amber
-    const palette = [
-      new THREE.Color(0xffffff), // Pure diamond white
-      new THREE.Color(0xffffff), // Pure diamond white
-      new THREE.Color(0xf6faff), // Diamond ice
-      new THREE.Color(0xd4eaff), // Ice Blue
-      new THREE.Color(0x9eccff), // Celestial Azure
-      new THREE.Color(0x72b4ff), // Deep Sky Blue
-      new THREE.Color(0xfff2e6), // Warm Ivory
-      new THREE.Color(0xffd4b8), // Warm Peach
-      new THREE.Color(0xffb890), // Radiant Apricot
-      new THREE.Color(0xff9e6b), // Amber Sunset
-      new THREE.Color(0xff8c52)  // Deep Coral
-    ];
-
-    // ── SHAPE GENERATORS (OPENAI ASTRA REFERENCE FIDELITY) ──
-    // Discrete diamond stars with natural celestial spacing and zero over-saturation
-
-    // 1. GALAXY (Hero) — Logarithmic spiral galaxy matching GPT-6 Astra hero
-    function genGalaxy(N) {
-      const p = new Float32Array(N * 3);
-      const arms = 3, maxR = 12.0;
-      for (let i = 0; i < N; i++) {
-        if (i < N * 0.24) {
-          // Dense central glowing stellar core
-          const r = Math.pow(Math.random(), 2.0) * 3.0;
-          const th = Math.random() * Math.PI * 2;
-          p[i*3] = Math.cos(th) * r * 1.15;
-          p[i*3+1] = Math.sin(th) * r * 0.82;
-          p[i*3+2] = (Math.random() - 0.5) * 1.6 * (1 - r / 3.0);
-        } else {
-          // 3-arm logarithmic spiral stream
-          const arm = i % arms;
-          const off = (arm * 2 * Math.PI) / arms;
-          const prog = Math.pow(Math.random(), 0.70);
-          const r = 2.4 + prog * (maxR - 2.4);
-          const th = prog * Math.PI * 2.8 + off + (Math.random() - 0.5) * 0.22;
-          const sp = (Math.random() - 0.5) * (0.45 + 0.04 * r);
-          p[i*3] = Math.cos(th) * (r + sp) * 1.15;
-          p[i*3+1] = Math.sin(th) * (r + sp) * 0.82;
-          p[i*3+2] = (Math.random() - 0.5) * 1.5 * Math.exp(-r / 8);
-        }
-      }
-      return p;
-    }
-
-    // 2. MONOGRAMME Q & FLÈCHE D'ASCENDANCE (Manifeste) — Identité de Marque QUANTIS
-    // Reproduction fidèle du logo officiel (logo.jpeg) : boucle Q pure, queue profilée et Flèche d'Or (↗)
-    function genQ(N) {
-      const p = new Float32Array(N * 3);
-      const colors = new Array(N);
-
-      // Répartition des particules : Boucle (~58%), Queue (~14%), Flèche (~22%), Halo (~6%)
-      const ringN  = Math.floor(N * 0.58);
-      const tailN  = Math.floor(N * 0.14);
-      const arrowN = Math.floor(N * 0.22);
-      const dustN  = N - ringN - tailN - arrowN;
-
-      // Palette Or Solaire & Ambre pour la Flèche (conformément au logo officiel)
-      const arrowGoldPalette = [
-        new THREE.Color(0xffc247), // Or Quantis
-        new THREE.Color(0xffd766), // Or étincelant diamant
-        new THREE.Color(0xffad33), // Ambre chaud
-        new THREE.Color(0xffe58f), // Or céleste pâle
-        new THREE.Color(0xffffff)  // Étoile de diamant pur
-      ];
-
-      // Palette Céleste Pure pour le Q (Blanc diamant, azur et glace)
-      const qBodyPalette = [
-        new THREE.Color(0xffffff), // Blanc diamant
-        new THREE.Color(0xffffff),
-        new THREE.Color(0xf4f9ff), // Diamant glacier
-        new THREE.Color(0xd4eaff), // Bleu givré
-        new THREE.Color(0x9eccff), // Azur céleste
-        new THREE.Color(0xfff2e6)  // Ivoire chaud
-      ];
-
-      const cx = -3.8, cy = 0.0;
-      const Rx = 8.8, Ry = 10.6;
-
-      // 2.1 Boucle du Q — Anneau pur avec intérieur sombre dégagé
-      for (let i = 0; i < ringN; i++) {
-        const th = (i / ringN) * Math.PI * 2;
-        const strokeWidth = 0.65 + 0.9 * Math.pow(Math.cos(th), 2);
-        const u = (Math.random() - 0.5) * strokeWidth;
-
-        const nx = Math.cos(th) / Rx;
-        const ny = Math.sin(th) / Ry;
-        const nlen = Math.hypot(nx, ny) || 1;
-
-        p[i*3]   = cx + Rx * Math.cos(th) + (nx / nlen) * u;
-        p[i*3+1] = cy + Ry * Math.sin(th) + (ny / nlen) * u;
-        p[i*3+2] = (Math.random() - 0.5) * 1.2;
-        colors[i] = qBodyPalette[Math.floor(Math.random() * qBodyPalette.length)];
-      }
-
-      // 2.2 Queue du Q — Émergence élégante à 5h descendant vers le bas-droite (logo.jpeg)
-      const p0 = [cx + 1.8, cy - 5.5];
-      const p1 = [cx + 4.5, cy - 8.2];
-      const p2 = [cx + 7.5, cy - 10.2];
-      const p3 = [cx + 9.8, cy - 11.2];
-
-      for (let i = 0; i < tailN; i++) {
-        const idx = ringN + i;
-        const t = i / tailN;
-        const u = 1 - t;
-        const bx = u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0];
-        const by = u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1];
-        const spread = (Math.random() - 0.5) * (1.1 * (1 - t * 0.3));
-
-        p[idx*3]   = bx + spread;
-        p[idx*3+1] = by + spread;
-        p[idx*3+2] = (Math.random() - 0.5) * 1.2;
-        colors[idx] = qBodyPalette[Math.floor(Math.random() * qBodyPalette.length)];
-      }
-
-      // 2.3 Flèche d'Ascendance (La Flèche Quantis) — Pointant à 45° (↗) à droite du Q
-      // Positionnée à 3h30 avec un espacement sombre net vis-à-vis du Q
-      const acx = 10.5, acy = 1.6;
-      const cos45 = Math.SQRT1_2;
-      const sin45 = Math.SQRT1_2;
-
-      // Hampe de la flèche (Shaft)
-      const shaftN = Math.floor(arrowN * 0.40);
-      for (let i = 0; i < shaftN; i++) {
-        const idx = ringN + tailN + i;
-        const s = -2.6 + (i / shaftN) * 3.0; // le long de l'axe 45°
-        const w = (Math.random() - 0.5) * 1.4; // largeur perpendiculaire
-        p[idx*3]   = acx + s * cos45 - w * sin45;
-        p[idx*3+1] = acy + s * sin45 + w * cos45;
-        p[idx*3+2] = (Math.random() - 0.5) * 1.0;
-        colors[idx] = arrowGoldPalette[Math.floor(Math.random() * arrowGoldPalette.length)];
-      }
-
-      // Pointe de la flèche (Arrowhead en chevron étincelant)
-      const headN = arrowN - shaftN;
-      for (let i = 0; i < headN; i++) {
-        const idx = ringN + tailN + shaftN + i;
-        let s, w;
-        if (i < 36) {
-          // Étoiles de contour pour une pointe incisive et des barbillons nets
-          const t = i / 36;
-          if (t < 0.42) {
-            // Pointe (3.8, 0) vers barbillon gauche (0.4, -2.4)
-            const sub = t / 0.42;
-            s = 3.8 * (1 - sub) + 0.4 * sub;
-            w = 0.0 * (1 - sub) + (-2.4) * sub;
-          } else if (t < 0.84) {
-            // Pointe (3.8, 0) vers barbillon droit (0.4, 2.4)
-            const sub = (t - 0.42) / 0.42;
-            s = 3.8 * (1 - sub) + 0.4 * sub;
-            w = 0.0 * (1 - sub) + 2.4 * sub;
-          } else {
-            s = 0.4 + (Math.random() - 0.5) * 0.3;
-            w = (Math.random() - 0.5) * 4.8;
-          }
-        } else {
-          // Remplissage intérieur
-          let r1 = Math.random(), r2 = Math.random();
-          if (r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
-          s = (1 - r1 - r2) * 3.8 + r1 * 0.4 + r2 * 0.4;
-          w = (1 - r1 - r2) * 0.0 + r1 * (-2.4) + r2 * 2.4;
-        }
-
-        p[idx*3]   = acx + s * cos45 - w * sin45;
-        p[idx*3+1] = acy + s * sin45 + w * cos45;
-        p[idx*3+2] = (Math.random() - 0.5) * 1.0;
-
-        if (i === 0 || i === 1) {
-          colors[idx] = new THREE.Color(0xffffff); // Diamant pur pour le sommet
-        } else {
-          colors[idx] = arrowGoldPalette[Math.floor(Math.random() * arrowGoldPalette.length)];
-        }
-      }
-
-      // 2.4 Poussière d'étoiles ambiante
-      for (let i = 0; i < dustN; i++) {
-        const idx = ringN + tailN + arrowN + i;
-        const th = Math.random() * Math.PI * 2;
-        const rad = 1.15 + Math.random() * 0.25;
-        p[idx*3]   = cx + Rx * rad * Math.cos(th);
-        p[idx*3+1] = cy + Ry * rad * Math.sin(th);
-        p[idx*3+2] = (Math.random() - 0.5) * 2.2;
-        colors[idx] = qBodyPalette[Math.floor(Math.random() * qBodyPalette.length)];
-      }
-
-      // Centrage parfait de l'ensemble (Q + Queue + Flèche) au point (0, 0, 0)
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for (let i = 0; i < ringN + tailN + arrowN; i++) {
-        const x = p[i*3], y = p[i*3+1];
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-      const midX = (minX + maxX) * 0.5;
-      const midY = (minY + maxY) * 0.5;
-      for (let i = 0; i < N; i++) {
-        p[i*3]   -= midX;
-        p[i*3+1] -= midY;
-      }
-
-      return { positions: p, colors: colors };
-    }
-
-    // 3. ROUNDED DELTA LOOP (Benchmarks) — Exact reproduction of OpenAI Astra reference shape
-    // Organic closed delta ribbon with rounded corners, sweeping contours, and inner aerodynamic cleft
-    function genDeltaLoop(N) {
-      const p = new Float32Array(N * 3);
-
-      // 12 key knots defining the smooth aerodynamic delta loop from OpenAI Astra
-      const knots = [
-        new THREE.Vector3(-9.2, 9.6, 0),   // 1. Top-left lobe apex
-        new THREE.Vector3(-3.5, 9.2, 0),   // 2. Upper camber
-        new THREE.Vector3(4.5, 8.0, 0),    // 3. Upper camber sloping down
-        new THREE.Vector3(10.5, 5.8, 0),   // 4. Approaching right nose
-        new THREE.Vector3(15.0, 2.2, 0),   // 5. Right rounded nose apex
-        new THREE.Vector3(10.8, -1.8, 0),  // 6. Inward slope from nose
-        new THREE.Vector3(5.5, -4.8, 0),   // 7. Inner cleft throat
-        new THREE.Vector3(2.5, -8.8, 0),   // 8. Sloping down from cleft
-        new THREE.Vector3(-0.5, -12.0, 0), // 9. Approaching bottom cusp
-        new THREE.Vector3(-3.5, -13.5, 0), // 10. Bottom cusp apex (rounded)
-        new THREE.Vector3(-6.8, -5.5, 0),  // 11. Left spine lower
-        new THREE.Vector3(-8.8, 2.5, 0)    // 12. Left spine upper
-      ];
-
-      const curve = new THREE.CatmullRomCurve3(knots, true, "centripetal");
-
-      for (let i = 0; i < N; i++) {
-        const t = i / N;
-        const pt = curve.getPoint(t);
-        const tan = curve.getTangent(t);
-
-        // Normal in 2D plane: (-Ty, Tx)
-        const nx = -tan.y;
-        const ny = tan.x;
-
-        // Ribbon thickness: compact, cohesive stream
-        const localThick = 0.95 + 0.35 * Math.sin(t * Math.PI * 4);
-        const r = (Math.random() + Math.random() - 1.0) * localThick;
-
-        // 4% subtle ambient stardust
-        const isDust = Math.random() < 0.04;
-        const dust = isDust ? (Math.random() - 0.5) * 2.2 : 0;
-
-        p[i*3]   = pt.x + nx * (r + dust);
-        p[i*3+1] = pt.y + ny * (r + dust);
-        p[i*3+2] = (Math.random() - 0.5) * 1.4;
-      }
-
-      // Exact mathematical centering
-      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-      for (let i = 0; i < N; i++) {
-        const x = p[i*3], y = p[i*3+1];
-        if (x < minX) minX = x;
-        if (x > maxX) maxX = x;
-        if (y < minY) minY = y;
-        if (y > maxY) maxY = y;
-      }
-      const midX = (minX + maxX) * 0.5;
-      const midY = (minY + maxY) * 0.5;
-      for (let i = 0; i < N; i++) {
-        p[i*3]   -= midX;
-        p[i*3+1] -= midY;
-      }
-
-      return p;
-    }
-
-    // 4. CLOUD (Domaines) — Widescreen porous star cluster (matching GPT-6 Astra cloud)
-    function genCloud(N) {
-      const p = new Float32Array(N * 3);
-      for (let i = 0; i < N; i++) {
-        const u1 = Math.max(1e-4, Math.random()), u2 = Math.random();
-        const u3 = Math.max(1e-4, Math.random()), u4 = Math.random();
-        let x = Math.sqrt(-2 * Math.log(u1)) * Math.sin(2 * Math.PI * u2) * 12.5;
-        let y = Math.sqrt(-2 * Math.log(u3)) * Math.sin(2 * Math.PI * u4) * 7.0;
-        x = Math.max(-24, Math.min(24, x));
-        y = Math.max(-13, Math.min(13, y));
-        p[i*3] = x;
-        p[i*3+1] = y;
-        p[i*3+2] = (Math.random() - 0.5) * 4.5;
-      }
-      return p;
-    }
-
-    // 5. ROSETTE (Principes) — Interwoven 5-petal rosette (matching GPT-6 Astra rosette)
-    function genRosette(N) {
-      const p = new Float32Array(N * 3);
-      const arms = 5, ppa = Math.floor(N / arms);
-      for (let a = 0; a < arms; a++) {
-        const aAngle = (a * 2 * Math.PI) / arms;
-        for (let j = 0; j < ppa; j++) {
-          const i = a * ppa + j;
-          if (i >= N) break;
-          const t = j / ppa;
-          const r = 2.4 + Math.sin(t * Math.PI) * 12.0;
-          const th = aAngle + t * 1.85 * Math.PI;
-          const jit = (Math.random() - 0.5) * 0.85;
-          p[i*3]   = Math.cos(th) * r * 1.08 + jit;
-          p[i*3+1] = Math.sin(th) * r * 0.88 + jit;
-          p[i*3+2] = Math.sin(t * Math.PI * 2) * 2.0;
-        }
-      }
-      return p;
-    }
-
-    // ── SECTION STAGE FACTORY (FULLSCREEN 100VW × 95VH) ──
-    // Creates a self-contained Three.js particle system for each section.
-    // Fullscreen canvas, discrete diamond stars, no box feeling, no over-saturation!
-    function createStage(canvasId, shapeData, opts = {}) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return null;
-      const container = canvas.parentElement;
-      if (!container) return null;
-
-      const COUNT = opts.count || 480;
-      const camZ = opts.cameraZ || 55;
-      const hasCore = opts.hasCore || false;
-      const isHero = opts.isHero || false;
-      const allowZRotation = opts.allowZRotation || false;
-
-      // 1. Generate target positions for the section's unique celestial shape
-      let targetPos;
-      let customColors = null;
-      const shapeResult = shapeData(COUNT);
-      if (shapeResult && shapeResult.positions) {
-        targetPos = shapeResult.positions;
-        customColors = shapeResult.colors;
-      } else {
-        targetPos = shapeResult;
-      }
-
-      // 2. Dispersed positions across wide widescreen cosmic volume (no box bounding!)
-      const dispersed = new Float32Array(COUNT * 3);
-      for (let i = 0; i < COUNT; i++) {
-        dispersed[i*3]   = (Math.random() - 0.5) * 160;
-        dispersed[i*3+1] = (Math.random() - 0.5) * 95;
-        dispersed[i*3+2] = (Math.random() - 0.5) * 60;
-      }
-
-      // 3. Partition particles into 3 astronomical tiers (matching OpenAI Astra reference):
-      // - Tier 1: Radiant Diamond Stars (~8%) with 4-point cross diffraction spikes
-      // - Tier 2: Brilliant Pearls (~24%) with soft luminous halos
-      // - Tier 3: Standard Celestial Stars (~68%) giving shape structure and high porosity
-      const countFlare = Math.max(8, Math.floor(COUNT * 0.08));
-      const countPearl = Math.floor(COUNT * 0.24);
-      const countBase  = COUNT - countFlare - countPearl;
-
-      // Evenly distribute flare and pearl stars along the shape trajectory
-      // so flares appear around the key lobes, clefts, and spines like in the OpenAI reference
-      const stepFlare = Math.max(1, Math.floor(COUNT / countFlare));
-      const flareIndices = [];
-      const pearlIndices = [];
-      const baseIndices  = [];
-
-      const used = new Uint8Array(COUNT);
-      for (let f = 0; f < countFlare; f++) {
-        const idx = Math.min(COUNT - 1, f * stepFlare + Math.floor(Math.random() * 2));
-        flareIndices.push(idx);
-        used[idx] = 1;
-      }
-
-      for (let p = 0; p < COUNT; p++) {
-        if (!used[p] && (p % 4 === 0 || p % 5 === 0) && pearlIndices.length < countPearl) {
-          pearlIndices.push(p);
-          used[p] = 2;
-        }
-      }
-      for (let b = 0; b < COUNT; b++) {
-        if (!used[b]) {
-          if (pearlIndices.length < countPearl) {
-            pearlIndices.push(b);
-            used[b] = 2;
-          } else {
-            baseIndices.push(b);
-            used[b] = 3;
-          }
-        }
-      }
-
-      // Unified state buffers
-      const pos = new Float32Array(COUNT * 3);
-      const vel = new Float32Array(COUNT * 3);
-      for (let i = 0; i < COUNT; i++) {
-        pos[i*3]   = dispersed[i*3];
-        pos[i*3+1] = dispersed[i*3+1];
-        pos[i*3+2] = dispersed[i*3+2];
-      }
-
-      // Colors for each layer
-      function buildColorArray(indices) {
-        const arr = new Float32Array(indices.length * 3);
-        for (let i = 0; i < indices.length; i++) {
-          const idx = indices[i];
-          const col = (customColors && customColors[idx]) 
-            ? customColors[idx] 
-            : palette[Math.floor(Math.random() * palette.length)];
-          arr[i*3]   = col.r;
-          arr[i*3+1] = col.g;
-          arr[i*3+2] = col.b;
-        }
-        return arr;
-      }
-
-      const colFlare = buildColorArray(flareIndices);
-      const colPearl = buildColorArray(pearlIndices);
-      const colBase  = buildColorArray(baseIndices);
-
-      const posFlare = new Float32Array(flareIndices.length * 3);
-      const posPearl = new Float32Array(pearlIndices.length * 3);
-      const posBase  = new Float32Array(baseIndices.length * 3);
-
-      function syncSubArrays() {
-        for (let i = 0; i < flareIndices.length; i++) {
-          const src = flareIndices[i] * 3;
-          posFlare[i*3]   = pos[src];
-          posFlare[i*3+1] = pos[src+1];
-          posFlare[i*3+2] = pos[src+2];
-        }
-        for (let i = 0; i < pearlIndices.length; i++) {
-          const src = pearlIndices[i] * 3;
-          posPearl[i*3]   = pos[src];
-          posPearl[i*3+1] = pos[src+1];
-          posPearl[i*3+2] = pos[src+2];
-        }
-        for (let i = 0; i < baseIndices.length; i++) {
-          const src = baseIndices[i] * 3;
-          posBase[i*3]   = pos[src];
-          posBase[i*3+1] = pos[src+1];
-          posBase[i*3+2] = pos[src+2];
-        }
-      }
-      syncSubArrays();
-
-      // Scene & Fullscreen Camera
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(44, w / h, 0.1, 1000);
-      camera.position.z = camZ;
-
-      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-      renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      const group = new THREE.Group();
-      if (opts.offsetY) group.position.y = opts.offsetY;
-      scene.add(group);
-
-      // Layer 1: Base Stars (crisp celestial points)
-      const geoBase = new THREE.BufferGeometry();
-      geoBase.setAttribute("position", new THREE.BufferAttribute(posBase, 3));
-      geoBase.setAttribute("color", new THREE.BufferAttribute(colBase, 3));
-      const matBase = new THREE.PointsMaterial({
-        size: 2.75,
-        map: discTexture,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.95,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        sizeAttenuation: true
-      });
-      group.add(new THREE.Points(geoBase, matBase));
-
-      // Layer 2: Pearl Stars (luminous celestial pearls with soft halos)
-      const geoPearl = new THREE.BufferGeometry();
-      geoPearl.setAttribute("position", new THREE.BufferAttribute(posPearl, 3));
-      geoPearl.setAttribute("color", new THREE.BufferAttribute(colPearl, 3));
-      const matPearl = new THREE.PointsMaterial({
-        size: 4.8,
-        map: discTexture,
-        vertexColors: true,
-        transparent: true,
-        opacity: 1.0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        sizeAttenuation: true
-      });
-      group.add(new THREE.Points(geoPearl, matPearl));
-
-      // Layer 3: Radiant Diamond Stars with 4-Point Cross Diffraction Flare
-      const geoFlare = new THREE.BufferGeometry();
-      geoFlare.setAttribute("position", new THREE.BufferAttribute(posFlare, 3));
-      geoFlare.setAttribute("color", new THREE.BufferAttribute(colFlare, 3));
-      const matFlare = new THREE.PointsMaterial({
-        size: 13.5,
-        map: flareTexture,
-        vertexColors: true,
-        transparent: true,
-        opacity: 1.0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        sizeAttenuation: true
-      });
-      group.add(new THREE.Points(geoFlare, matFlare));
-
-      // Optional core glow for hero galaxy
-      let coreMesh = null;
-      if (hasCore) {
-        const cg = new THREE.SphereGeometry(1.1, 16, 16);
-        const cm = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
-        coreMesh = new THREE.Mesh(cg, cm);
-        group.add(coreMesh);
-      }
-
-      // Assembly state
-      let assembly = isHero ? 1.0 : 0.0;
-      let targetAssembly = isHero ? 1.0 : 0.0;
-
-      function updateVisibility() {
-        if (isHero) {
-          const sy = window.scrollY;
-          const vh = window.innerHeight;
-          if (sy < vh * 1.1) {
-            targetAssembly = Math.max(0, Math.min(1, 1 - sy / (vh * 0.75)));
-          } else {
-            targetAssembly = 0;
-          }
-          return;
-        }
-
-        const rect = container.getBoundingClientRect();
-        const vh = window.innerHeight;
-        const centerY = rect.top + rect.height * 0.5;
-        const distFromCenter = Math.abs(centerY - vh * 0.5);
-
-        const activeRange = vh * 0.85;
-        const plateau = vh * 0.35;
-        if (distFromCenter <= plateau) {
-          targetAssembly = 1.0;
-        } else if (distFromCenter < activeRange) {
-          const norm = (distFromCenter - plateau) / (activeRange - plateau);
-          targetAssembly = Math.pow(Math.cos(norm * Math.PI * 0.5), 1.4);
-        } else {
-          targetAssembly = 0;
-        }
-      }
-      window.addEventListener("scroll", updateVisibility, { passive: true });
-      updateVisibility();
-
-      // Mouse drag rotation
-      let drag = false, px = 0, py = 0;
-      container.addEventListener("mousedown", e => { drag = true; px = e.clientX; py = e.clientY; });
-      window.addEventListener("mouseup", () => drag = false);
-      window.addEventListener("mousemove", e => {
-        if (drag) {
-          group.rotation.y += (e.clientX - px) * 0.006;
-          group.rotation.x += (e.clientY - py) * 0.006;
-          px = e.clientX; py = e.clientY;
-        }
-      });
-
-      // Touch drag rotation for mobile & tablet
-      let touchDown = false, tx = 0, ty = 0;
-      container.addEventListener("touchstart", e => {
-        if (e.touches.length === 1) {
-          touchDown = true;
-          tx = e.touches[0].clientX;
-          ty = e.touches[0].clientY;
-        }
-      }, { passive: true });
-      window.addEventListener("touchend", () => { touchDown = false; }, { passive: true });
-      window.addEventListener("touchcancel", () => { touchDown = false; }, { passive: true });
-      window.addEventListener("touchmove", e => {
-        if (touchDown && e.touches.length === 1) {
-          const dx = e.touches[0].clientX - tx;
-          const dy = e.touches[0].clientY - ty;
-          group.rotation.y += dx * 0.007;
-          group.rotation.x += dy * 0.007;
-          tx = e.touches[0].clientX;
-          ty = e.touches[0].clientY;
-        }
-      }, { passive: true });
-
-      // Responsive layout handler
-      function updateResponsiveLayout() {
-        const rw = container.clientWidth || window.innerWidth;
-        const rh = container.clientHeight || window.innerHeight;
-        camera.aspect = rw / rh;
-        camera.updateProjectionMatrix();
-        renderer.setSize(rw, rh);
-
-        const isMobile = rw < 768;
-        const isTablet = rw >= 768 && rw < 1024;
-
-        if (isHero) {
-          if (isMobile) {
-            // Galaxy on mobile: pulled back to cameraZ 88, offsetY -18.5 to sit elegantly below stacked mobile CTA buttons
-            camera.position.z = 88;
-            group.position.y = -18.5;
-          } else if (isTablet) {
-            camera.position.z = 76;
-            group.position.y = -14.5;
-          } else {
-            camera.position.z = camZ;
-            group.position.y = opts.offsetY !== undefined ? opts.offsetY : -12.5;
-          }
-        } else {
-          if (isMobile) {
-            // Section constellations: pull camera back to 82 so the ~24-unit shape has ample margin on narrow screens
-            camera.position.z = Math.max(camZ * 1.50, 82);
-            if (opts.offsetY) group.position.y = opts.offsetY;
-          } else if (isTablet) {
-            camera.position.z = Math.max(camZ * 1.20, 66);
-            if (opts.offsetY) group.position.y = opts.offsetY;
-          } else {
-            camera.position.z = camZ;
-            if (opts.offsetY) group.position.y = opts.offsetY;
-          }
-        }
-
-        // Calibrate star particle sizes: on mobile, fine pinpoint stars preserve luxury cosmic feel without blurry clumping
-        const sizeFactor = isMobile ? 0.60 : (isTablet ? 0.82 : 1.0);
-        matBase.size  = 2.75 * sizeFactor;
-        matPearl.size = 4.80 * sizeFactor;
-        matFlare.size = 13.5 * sizeFactor;
-      }
-      window.addEventListener("resize", updateResponsiveLayout);
-      updateResponsiveLayout();
-
-      // Animation loop
-      const clock = new THREE.Clock();
-      let frame = 0;
-
-      function animate() {
-        requestAnimationFrame(animate);
-        frame++;
-        if (frame % 4 === 0) updateVisibility();
-
-        const dt = clock.getDelta();
-        const t = clock.getElapsedTime();
-
-        assembly += (targetAssembly - assembly) * 0.08;
-
-        // Smooth luminous opacity fade:
-        // Assembled -> brilliant crisp stars
-        // Dispersing -> cleanly fades to 0.0 (zero residual box border)
-        const curOp = Math.max(0, Math.min(1.0, assembly * 1.15));
-        matBase.opacity  = curOp * 0.90;
-        matPearl.opacity = curOp * 0.95;
-        matFlare.opacity = curOp * 1.00;
-
-        if (assembly < 0.002 && targetAssembly === 0) {
-          renderer.clear();
-          return;
-        }
-
-        // Dynamic motion:
-        // Galaxy & Rosette rotate slowly around Z
-        // Delta Loop and Serif Q stay upright with gentle parallax tilt
-        if (!drag && !touchDown) {
-          if (allowZRotation) {
-            group.rotation.z += 0.04 * dt;
-          } else {
-            group.rotation.z = 0;
-          }
-          group.rotation.y = Math.sin(t * 0.35) * 0.07;
-          group.rotation.x = Math.cos(t * 0.25) * 0.05;
-        }
-
-        const spring = 0.055;
-        const damp   = 0.84;
-
-        for (let i = 0; i < COUNT; i++) {
-          const idx = i * 3;
-
-          // Living astronomical micro-twinkle & motion
-          const motionAmp = 0.18;
-          const freq = 0.4 + (i % 7) * 0.08;
-          const mx = targetPos[idx]   + Math.sin(t * freq + i * 0.1) * motionAmp;
-          const my = targetPos[idx+1] + Math.cos(t * freq * 0.7 + i * 0.2) * motionAmp;
-          const mz = targetPos[idx+2] + Math.sin(t * freq * 1.1 + i * 0.3) * motionAmp * 0.6;
-
-          const tx = dispersed[idx]   * (1 - assembly) + mx * assembly;
-          const ty = dispersed[idx+1] * (1 - assembly) + my * assembly;
-          const tz = dispersed[idx+2] * (1 - assembly) + mz * assembly;
-
-          const fx = (tx - pos[idx])   * spring;
-          const fy = (ty - pos[idx+1]) * spring;
-          const fz = (tz - pos[idx+2]) * spring;
-
-          vel[idx]   = (vel[idx]   + fx) * damp;
-          vel[idx+1] = (vel[idx+1] + fy) * damp;
-          vel[idx+2] = (vel[idx+2] + fz) * damp;
-
-          pos[idx]   += vel[idx];
-          pos[idx+1] += vel[idx+1];
-          pos[idx+2] += vel[idx+2];
-        }
-
-        syncSubArrays();
-        geoBase.attributes.position.needsUpdate  = true;
-        geoPearl.attributes.position.needsUpdate = true;
-        geoFlare.attributes.position.needsUpdate = true;
-
-        if (coreMesh) {
-          coreMesh.material.opacity = 0.85 * assembly;
-          const s = (1 + Math.sin(t * 3) * 0.15) * assembly;
-          coreMesh.scale.set(s, s, s);
-        }
-
-        renderer.render(scene, camera);
-      }
-      animate();
-    }
-
-    // ── CREATE ALL FULLSCREEN SECTION STAGES (CALIBRATED ACCURACY) ──
-    createStage("hero-galaxy-canvas", genGalaxy, { count: 750, cameraZ: 66, offsetY: -12.5, hasCore: true, isHero: true, allowZRotation: true });
-    createStage("manifesto-q-canvas", genQ, { count: 650, cameraZ: 55, allowZRotation: false });
-    createStage("benchmarks-cursor-canvas", genDeltaLoop, { count: 480, cameraZ: 55, allowZRotation: false });
-    createStage("domains-cloud-canvas", genCloud, { count: 520, cameraZ: 55, allowZRotation: false });
-    createStage("principles-rosette-canvas", genRosette, { count: 550, cameraZ: 55, allowZRotation: true });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 6. INTERACTIVE BENCHMARKS
-  // ═══════════════════════════════════════════════════════════════════════════
-  const benchmarkData = {
-    resilience: {
-      title: "Disponibilité & Résilience Système (Offline-First)",
-      legendQuantis: "QUANTIS Architecture Souveraine",
-      legendTier1: "Solutions Cloud Classiques (AWS/Azure)",
-      yAxisLabel: "Taux de Disponibilité Effective (%)",
-      xAxisLabel: "Durée de Rupture Réseau Externe (Heures)",
-      pointsQuantis: [
-        { x: 50, y: 35, val: "99.999%" }, { x: 180, y: 38, val: "99.99%" },
-        { x: 310, y: 40, val: "99.98%" }, { x: 440, y: 42, val: "99.95%" },
-        { x: 580, y: 45, val: "99.9%" }
-      ],
-      pointsTier1: [
-        { x: 50, y: 60, val: "98.2%" }, { x: 180, y: 110, val: "92.5%" },
-        { x: 310, y: 180, val: "81.0%" }, { x: 440, y: 240, val: "68.4%" },
-        { x: 580, y: 280, val: "42.0%" }
-      ],
-      caption: "Grâce à son moteur de synchronisation décentralisé Offline-First et ses unités physiques Edge, QUANTIS maintient 99.9% de disponibilité opérationnelle même lors de coupures Internet prolongées."
-    },
-    latency: {
-      title: "Latence & Débit Réseau Zero-Trust (Quantis 001)",
-      legendQuantis: "QUANTIS Network 001 (Hardware)",
-      legendTier1: "Pare-feux Industriels Fortinet / Cisco",
-      yAxisLabel: "Débit Garanti sans Perte (Gbps)",
-      xAxisLabel: "Nombre de Connexions Simultanées (k)",
-      pointsQuantis: [
-        { x: 50, y: 40, val: "98.4 Gbps" }, { x: 180, y: 45, val: "97.8 Gbps" },
-        { x: 310, y: 50, val: "97.1 Gbps" }, { x: 440, y: 55, val: "96.5 Gbps" },
-        { x: 580, y: 60, val: "95.9 Gbps" }
-      ],
-      pointsTier1: [
-        { x: 50, y: 90, val: "85 Gbps" }, { x: 180, y: 140, val: "72 Gbps" },
-        { x: 310, y: 200, val: "58 Gbps" }, { x: 440, y: 245, val: "42 Gbps" },
-        { x: 580, y: 270, val: "30 Gbps" }
-      ],
-      caption: "Mesures en banc d'essai certifié Fluke & Ixia : L'architecture Zero-Trust Quantis assure une latence sub-milliseconde sous charge maximale."
-    },
-    automation: {
-      title: "Efficacité Opérationnelle & Réduction d'Erreurs (Jarvis)",
-      legendQuantis: "QUANTIS Jarvis Core + ERP",
-      legendTier1: "ERP Traditionnels Configurés",
-      yAxisLabel: "Taux de Tâches Automatisées avec Succès (%)",
-      xAxisLabel: "Complexité du Workflow d'Entreprise (Paliers)",
-      pointsQuantis: [
-        { x: 50, y: 30, val: "98%" }, { x: 180, y: 40, val: "95%" },
-        { x: 310, y: 55, val: "93%" }, { x: 440, y: 70, val: "90%" },
-        { x: 580, y: 85, val: "88%" }
-      ],
-      pointsTier1: [
-        { x: 50, y: 110, val: "74%" }, { x: 180, y: 160, val: "59%" },
-        { x: 310, y: 210, val: "46%" }, { x: 440, y: 250, val: "35%" },
-        { x: 580, y: 280, val: "22%" }
-      ],
-      caption: "Audit de performance sur 10 000 opérations de caisse et de stocks : Les agents conversationnels Jarvis éliminent 94% des saisies manuelles redondantes."
-    },
-    durability: {
-      title: "Index de Pérennité Logicielle & Dette Technique (10+ Ans)",
-      legendQuantis: "Codebase Souveraine QUANTIS",
-      legendTier1: "Frameworks d'Entreprise Lourds",
-      yAxisLabel: "Score d'Intégrité Architecturale (Sur 100)",
-      xAxisLabel: "Années d'Exploitation Continue",
-      pointsQuantis: [
-        { x: 50, y: 30, val: "99/100" }, { x: 180, y: 32, val: "98/100" },
-        { x: 310, y: 35, val: "97/100" }, { x: 440, y: 38, val: "96/100" },
-        { x: 580, y: 42, val: "95/100" }
-      ],
-      pointsTier1: [
-        { x: 50, y: 80, val: "86/100" }, { x: 180, y: 120, val: "74/100" },
-        { x: 310, y: 180, val: "58/100" }, { x: 440, y: 230, val: "42/100" },
-        { x: 580, y: 270, val: "28/100" }
-      ],
-      caption: "Principe 6 : Chaque ligne de code est écrite pour durer au moins dix ans. Zéro dépendance instable, audits de sécurité continus."
+  const hidePreloader = () => {
+    if (preloader && !preloader.classList.contains("fade-out")) {
+      preloader.classList.add("fade-out");
     }
   };
+  window.addEventListener("load", () => setTimeout(hidePreloader, 350));
+  setTimeout(hidePreloader, 1200);
+
+  // --------------------------------------------------------------------------
+  // 2. MOTEURS 3D THREE.JS (ARRIÈRE-PLAN GLSL + LAB PRODUITS)
+  // --------------------------------------------------------------------------
+  if (typeof window.initQuantisMasterScene === "function") {
+    window.initQuantisMasterScene();
+  }
+  if (typeof window.initQuantisProductLab === "function") {
+    window.initQuantisProductLab();
+  }
+
+  // --------------------------------------------------------------------------
+  // 3. NAVBAR, SCROLL PROGRESS & SCROLLSPY
+  // --------------------------------------------------------------------------
+  const navbar = document.getElementById("navbar");
+  const progressBar = document.getElementById("scrollProgressBar");
+  const navLinks = Array.from(document.querySelectorAll(".nav-link[href^='#']"));
+  const trackedSections = navLinks
+    .map((link) => {
+      const id = link.getAttribute("href").slice(1);
+      return { link, el: document.getElementById(id) };
+    })
+    .filter((item) => item.el);
+
+  function onScrollUI() {
+    const sy = window.scrollY;
+    if (navbar) navbar.classList.toggle("scrolled", sy > 32);
+
+    if (progressBar) {
+      const maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const ratio = Math.min(1, Math.max(0, sy / maxScroll));
+      progressBar.style.transform = `scaleX(${ratio})`;
+    }
+
+    const triggerY = sy + window.innerHeight * 0.35;
+    let activeLink = null;
+    for (const item of trackedSections) {
+      if (item.el.offsetTop <= triggerY) {
+        activeLink = item.link;
+      }
+    }
+    navLinks.forEach((l) => l.classList.toggle("active", l === activeLink));
+
+    // Progression de la timeline Horizon 2040+
+    const timelineEl = document.getElementById("horizonTimeline");
+    const timelineFill = document.getElementById("timelineProgressFill");
+    if (timelineEl && timelineFill) {
+      const rect = timelineEl.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const pct = Math.max(
+        0,
+        Math.min(1, (vh * 0.65 - rect.top) / Math.max(1, rect.height))
+      );
+      timelineFill.style.transform = `scaleY(${pct})`;
+    }
+  }
+  window.addEventListener("scroll", onScrollUI, { passive: true });
+  onScrollUI();
+
+  // --------------------------------------------------------------------------
+  // 4. DRAWER MOBILE ACCESSIBLE
+  // --------------------------------------------------------------------------
+  const mobileToggle = document.getElementById("mobileToggle");
+  const mobileDrawer = document.getElementById("mobileDrawer");
+  const mobileClose = document.getElementById("mobileClose");
+
+  function setDrawerOpen(open) {
+    if (!mobileDrawer || !mobileToggle) return;
+    mobileDrawer.classList.toggle("open", open);
+    mobileDrawer.setAttribute("aria-hidden", String(!open));
+    mobileToggle.setAttribute("aria-expanded", String(open));
+    document.body.style.overflow = open ? "hidden" : "";
+  }
+
+  if (mobileToggle && mobileDrawer) {
+    mobileToggle.addEventListener("click", () => {
+      const isOpen = mobileDrawer.classList.contains("open");
+      setDrawerOpen(!isOpen);
+    });
+    if (mobileClose) {
+      mobileClose.addEventListener("click", () => setDrawerOpen(false));
+    }
+    mobileDrawer.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => setDrawerOpen(false));
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && mobileDrawer.classList.contains("open")) {
+        setDrawerOpen(false);
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 5. SCROLL REVEAL & COMPTEURS ANIMÉS
+  // --------------------------------------------------------------------------
+  const revealEls = document.querySelectorAll("[data-reveal]");
+  if ("IntersectionObserver" in window) {
+    const revObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            revObs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -36px 0px" }
+    );
+    revealEls.forEach((el) => revObs.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("revealed"));
+  }
+
+  // Spotlight radial tracking sur cartes premium
+  document.querySelectorAll("[data-spotlight]").forEach((card) => {
+    card.addEventListener(
+      "mousemove",
+      (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+        card.style.setProperty("--my", `${e.clientY - rect.top}px`);
+      },
+      { passive: true }
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // 6. SHOWCASE DES 6 DOMAINES D'INGÉNIERIE
+  // --------------------------------------------------------------------------
+  const domainData = {
+    mobile: {
+      index: "01 / 06",
+      category: "INGÉNIERIE MOBILE & POS",
+      badge: "OFFLINE-FIRST · FLUTTER, KOTLIN & SWIFT",
+      title: "Applications Mobiles Terrain & Terminaux POS",
+      desc: "Propulse Quantis-Stock mobile et Quantis-Phone (Linphone SDK Android Kotlin & iOS Swift/CallKit). Fonctionnement garanti même lors des coupures réseau grâce au stockage SQLite Drift et à la synchronisation différentielle.",
+      img: "img_service_mobile.jpg",
+      specs: [
+        { val: "100 %", label: "Opérationnel hors-ligne via SQLite Drift" },
+        { val: "60 FPS", label: "Rendu natif Flutter, Kotlin & Swift" }
+      ],
+      deliverables: [
+        "Vente au comptoir mobile & lecture code-barres",
+        "Appels HD natifs & notifications PushKit / CallKit",
+        "Synchronisation résiliente avec le serveur central"
+      ],
+      tags: ["Flutter", "Kotlin", "Swift", "SQLite Drift", "Linphone SDK"]
+    },
+    desktop: {
+      index: "02 / 06",
+      category: "ERP & LOGICIELS DESKTOP",
+      badge: "QUANTIS-STOCK ENGINE · JAVA 21 & FLUTTER",
+      title: "Progiciels de Gestion & Postes d'Opérations",
+      desc: "Cœur de Quantis-Stock : gestion commerciale multi-dépôts, caisse POS tactile, inventaires avec calcul d'écarts, facturation séquentielle FCFA / TVA 18 % (IFU & RCCM) et suivi strict des créances.",
+      img: "img_service_desktop.jpg",
+      specs: [
+        { val: "5 Rôles", label: "Contrôle d'accès RBAC & journal d'audit immuable" },
+        { val: "Multi-OS", label: "Exécution fluide Linux, Windows, macOS & Web" }
+      ],
+      deliverables: [
+        "Cycle complet Devis → Bon de livraison → Facture → Avoir",
+        "Historique immuable de chaque mouvement de stock",
+        "Exports comptables PDF, CSV & Excel certifiés"
+      ],
+      tags: ["Spring Boot 4", "Java 21", "PostgreSQL 18", "Flutter Desktop", "RBAC"]
+    },
+    web: {
+      index: "03 / 06",
+      category: "PLATEFORMES WEB & APIS",
+      badge: "WEBRTC · REST API · ARCHITECTURE SOUVERAINE",
+      title: "Portails Web, Client SIP.js & Microservices",
+      desc: "Conception d'APIs robustes et d'interfaces web temps réel : provisioning dynamique des comptes, portails métiers haute disponibilité et client WebRTC SIP.js sans plugin directement dans le navigateur.",
+      img: "img_service_web.jpg",
+      specs: [
+        { val: "TLS / WSS", label: "Chiffrement de transport web & signalisation SIP" },
+        { val: "Docker", label: "Déploiement reproductible sur site ou cloud" }
+      ],
+      deliverables: [
+        "APIs FastAPI & Spring Boot avec authentification JWT",
+        "Terminaison Nginx HTTPS/WebSocket & optimisation SEO",
+        "Supervision Redis Pub/Sub des événements temps réel"
+      ],
+      tags: ["SIP.js", "WebRTC", "Spring Boot", "FastAPI", "Nginx", "PostgreSQL"]
+    },
+    network: {
+      index: "04 / 06",
+      category: "TÉLÉPHONIE IP & RÉSEAUX D'ENTREPRISE",
+      badge: "QUANTIS-PHONE · ASTERISK PJSIP & ZERO-TRUST",
+      title: "Communications Unifiées VoIP & Cœurs Réseau",
+      desc: "Propulse Quantis-Phone : standard téléphonique Asterisk 20+ (PJSIP), visioconférence multi-participants LiveKit SFU, traversée NAT symétrique coturn et segmentation VLAN sécurisée.",
+      img: "img_service_network.jpg",
+      specs: [
+        { val: "Opus HD", label: "Audio adaptatif 48 kHz (6 à 510 kbps) + VP8/H.264" },
+        { val: "SRTP / TLS", label: "Signalisation & flux médias chiffrés de bout en bout" }
+      ],
+      deliverables: [
+        "Serveur Asterisk PJSIP (Registrar, Dialplan, CDR)",
+        "Relais STUN/TURN/ICE coturn pour pare-feux stricts",
+        "Audit réseau, VLAN isolés & continuité de service"
+      ],
+      tags: ["Quantis-Phone", "Asterisk PJSIP", "coturn", "LiveKit SFU", "SRTP/DTLS"]
+    },
+    cabling: {
+      index: "05 / 06",
+      category: "INFRASTRUCTURE PHYSIQUE & CÂBLAGE",
+      badge: "CERTIFICATION · FIBRE OPTIQUE & RACKS",
+      title: "Câblage Structuré & Baies de Brassage",
+      desc: "Déploiement physique d'excellence pour supporter vos serveurs Quantis-Stock locaux, vos téléphones VoIP Quantis-Phone et vos postes IA : baies organisées, Cat6A blindé et fibre optique.",
+      img: "img_service_cabling.jpg",
+      specs: [
+        { val: "100 %", label: "Liaisons testées et étiquetées selon normes TIA/EIA" },
+        { val: "On-Prem", label: "Hébergement local fiable pour zéro coupure LAN" }
+      ],
+      deliverables: [
+        "Refonte & assainissement de baies de brassage",
+        "Liaisons cuivre Cat6A & fibre inter-bâtiments",
+        "Schémas techniques complets & maintenance sur site"
+      ],
+      tags: ["Fibre Optique", "Cat6A Blindé", "Baies Brassage", "LAN Entreprise"]
+    },
+    ai: {
+      index: "06 / 06",
+      category: "INTELLIGENCE ARTIFICIELLE SOUVERAINE",
+      badge: "QUANTIS-IA · OPENJARVIS & QUANTIS VOICE",
+      title: "Agents Autonomes Local-First & Pilotage Vocal",
+      desc: "Moteur Quantis-IA basé sur OpenJarvis : vos assistants et analyses tournent en priorité sur vos propres machines via Ollama et Python/Rust, avec réveil vocal par double-clap intégré directement à Quantis-Stock.",
+      img: "img_service_ai.jpg",
+      specs: [
+        { val: "88,7 %", label: "Requêtes traitées localement sans dépendance cloud" },
+        { val: "8 Agents", label: "Orchestration outils, recherche docs & Quantis Voice" }
+      ],
+      deliverables: [
+        "Pilotage vocal Quantis Voice (CA du jour, stocks, dettes)",
+        "Agents Deep Research, Morning Digest & Monitor continu",
+        "Optimisation énergie, latence et coûts sur traces locales"
+      ],
+      tags: ["Quantis-IA", "OpenJarvis", "Ollama", "Quantis Voice", "Rust & Python"]
+    }
+  };
+
+  const domainTabs = Array.from(document.querySelectorAll(".domain-tab"));
+  const domSection = document.getElementById("domaines");
+  const domCard = document.getElementById("domainShowcaseCard");
+  const domInfoPane = document.getElementById("domainInfoPane");
+  const domAutoProgress = document.getElementById("domainAutoProgress");
+  const domAutoToggle = document.getElementById("domainAutoToggle");
+  const domAutoLabel = document.getElementById("domainAutoLabel");
+  const domIndex = document.getElementById("domainIndex");
+  const domCat = document.getElementById("domainCat");
+  const domBadge = document.getElementById("domainBadge");
+  const domTitle = document.getElementById("domainTitle");
+  const domDesc = document.getElementById("domainDesc");
+  const domImg = document.getElementById("domainImg");
+  const domSpecs = document.getElementById("domainSpecs");
+  const domDeliverables = document.getElementById("domainDeliverables");
+  const domTags = document.getElementById("domainTags");
+
+  // Préchargement silencieux des visuels des 6 pôles pour un défilement instantané
+  Object.values(domainData).forEach((item) => {
+    if (item && item.img) {
+      const preload = new Image();
+      preload.src = item.img;
+    }
+  });
+
+  let domainImgTimer = null;
+  let domainPaneTimer = null;
+  let activeDomainIndex = 0;
+
+  function renderDomain(key, animateTransition = true) {
+    const item = domainData[key];
+    if (!item) return;
+
+    const applyTextUpdates = () => {
+      if (domIndex) domIndex.textContent = item.index;
+      if (domCat) domCat.textContent = item.category;
+      if (domBadge) domBadge.textContent = item.badge;
+      if (domTitle) domTitle.textContent = item.title;
+      if (domDesc) domDesc.textContent = item.desc;
+
+      if (domSpecs) {
+        domSpecs.innerHTML = item.specs
+          .map(
+            (s) =>
+              `<div class="domain-spec-box"><div class="domain-spec-val">${s.val}</div><div class="domain-spec-label">${s.label}</div></div>`
+          )
+          .join("");
+      }
+      if (domDeliverables) {
+        domDeliverables.innerHTML = item.deliverables
+          .map(
+            (d) =>
+              `<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg><span>${d}</span></li>`
+          )
+          .join("");
+      }
+      if (domTags) {
+        domTags.innerHTML = item.tags
+          .map((t) => `<span class="domain-tag-item">${t}</span>`)
+          .join("");
+      }
+    };
+
+    if (domainPaneTimer) clearTimeout(domainPaneTimer);
+    if (domainImgTimer) clearTimeout(domainImgTimer);
+
+    if (animateTransition && domInfoPane) {
+      domInfoPane.classList.add("is-transitioning");
+      domainPaneTimer = setTimeout(() => {
+        applyTextUpdates();
+        domInfoPane.classList.remove("is-transitioning");
+      }, 140);
+    } else {
+      applyTextUpdates();
+    }
+
+    if (domImg) {
+      if (!animateTransition) {
+        domImg.src = item.img;
+        domImg.alt = item.title;
+        domImg.classList.remove("is-fading");
+      } else {
+        domImg.classList.add("is-fading");
+        domainImgTimer = setTimeout(() => {
+          domImg.src = item.img;
+          domImg.alt = item.title;
+          domImg.onload = () => domImg.classList.remove("is-fading");
+          setTimeout(() => domImg.classList.remove("is-fading"), 120);
+        }, 140);
+      }
+    }
+  }
+
+  const DOMAIN_CYCLE_MS = 4000;
+  const prefersReducedMotion =
+    window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let domainAutoEnabled = !prefersReducedMotion;
+  let domainVisible = false;
+  let domainHoverPaused = false;
+  let domainFocusPaused = false;
+  let domainElapsedMs = 0;
+  let domainLastFrameTs = null;
+
+  function updateAutoToggleUI() {
+    if (!domAutoToggle) return;
+    domAutoToggle.classList.toggle("is-paused", !domainAutoEnabled);
+    domAutoToggle.setAttribute("aria-pressed", String(domainAutoEnabled));
+    if (domAutoLabel) {
+      domAutoLabel.textContent = domainAutoEnabled ? "Auto · 4s" : "En pause";
+    }
+    if (!domainAutoEnabled && domAutoProgress) {
+      domAutoProgress.style.transform = "scaleX(0)";
+    }
+  }
+
+  function selectDomainByIndex(idx, animateTransition = true) {
+    if (!domainTabs.length) return;
+    const safeIdx = ((idx % domainTabs.length) + domainTabs.length) % domainTabs.length;
+    activeDomainIndex = safeIdx;
+    domainTabs.forEach((b, i) => {
+      const isSelected = i === safeIdx;
+      b.classList.toggle("active", isSelected);
+      b.setAttribute("aria-selected", String(isSelected));
+    });
+    renderDomain(domainTabs[safeIdx].getAttribute("data-domain"), animateTransition);
+    domainElapsedMs = 0;
+    if (domAutoProgress) {
+      domAutoProgress.style.transform = "scaleX(0)";
+    }
+  }
+
+  domainTabs.forEach((btn, idx) => {
+    btn.addEventListener("click", () => {
+      selectDomainByIndex(idx, true);
+    });
+
+    btn.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const nextIdx =
+          e.key === "ArrowRight"
+            ? (idx + 1) % domainTabs.length
+            : (idx - 1 + domainTabs.length) % domainTabs.length;
+        domainTabs[nextIdx].focus();
+        selectDomainByIndex(nextIdx, true);
+      }
+    });
+  });
+
+  if (domAutoToggle) {
+    domAutoToggle.addEventListener("click", () => {
+      domainAutoEnabled = !domainAutoEnabled;
+      domainElapsedMs = 0;
+      domainLastFrameTs = null;
+      updateAutoToggleUI();
+    });
+  }
+
+  if (domSection) {
+    const pauseTargets = [domCard, domSection.querySelector(".tabs-bar")].filter(Boolean);
+    pauseTargets.forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        domainHoverPaused = true;
+      });
+      el.addEventListener("mouseleave", () => {
+        domainHoverPaused = false;
+      });
+    });
+
+    domSection.addEventListener("focusin", (e) => {
+      if (e.target && e.target.classList && e.target.classList.contains("domain-tab")) {
+        domainFocusPaused = true;
+      }
+    });
+    domSection.addEventListener("focusout", () => {
+      setTimeout(() => {
+        const activeEl = document.activeElement;
+        domainFocusPaused = Boolean(
+          activeEl && domSection.contains(activeEl) && activeEl.classList.contains("domain-tab")
+        );
+      }, 0);
+    });
+
+    if ("IntersectionObserver" in window) {
+      const domainVisObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            domainVisible = entry.isIntersecting;
+            if (!domainVisible) {
+              domainLastFrameTs = null;
+            }
+          });
+        },
+        { threshold: 0.2 }
+      );
+      domainVisObserver.observe(domSection);
+    } else {
+      domainVisible = true;
+    }
+  }
+
+  function tickDomainAutoCycle(ts) {
+    requestAnimationFrame(tickDomainAutoCycle);
+    const shouldAdvance =
+      domainAutoEnabled &&
+      domainVisible &&
+      !domainHoverPaused &&
+      !domainFocusPaused &&
+      !document.hidden &&
+      domainTabs.length > 1;
+
+    if (!shouldAdvance) {
+      domainLastFrameTs = ts;
+      return;
+    }
+
+    if (domainLastFrameTs === null) {
+      domainLastFrameTs = ts;
+      return;
+    }
+
+    const delta = Math.min(120, Math.max(0, ts - domainLastFrameTs));
+    domainLastFrameTs = ts;
+    domainElapsedMs += delta;
+
+    const progress = Math.min(1, domainElapsedMs / DOMAIN_CYCLE_MS);
+    if (domAutoProgress) {
+      domAutoProgress.style.transform = `scaleX(${progress.toFixed(4)})`;
+    }
+
+    if (domainElapsedMs >= DOMAIN_CYCLE_MS) {
+      selectDomainByIndex(activeDomainIndex + 1, true);
+    }
+  }
+
+  selectDomainByIndex(0, false);
+  updateAutoToggleUI();
+  requestAnimationFrame(tickDomainAutoCycle);
+
+  // --------------------------------------------------------------------------
+  // 7. BENCHMARKS SVG HAUTE PRÉCISION (COURBES BÉZIER + TOOLTIP INTERACTIF)
+  // --------------------------------------------------------------------------
+  const benchmarkData = {
+    resilience: {
+      title: "Quantis-Stock — Continuité Caisse & Stock sans Internet",
+      kpiHero: "100 %",
+      kpiSub: "Fonctionnel hors-ligne via SQLite Drift avec rattrapage automatique",
+      legendQuantis: "Quantis-Stock (Offline-First SQLite Drift)",
+      legendTier1: "ERP Pur Cloud (Dépendant Internet)",
+      yTicks: ["100%", "85%", "70%", "55%", "40%"],
+      xTicks: ["0h", "6h", "24h", "48h", "72h"],
+      yAxisLabel: "Opérationnalité Caisse (%)",
+      xAxisLabel: "Durée Coupure WAN",
+      pointsQuantis: [
+        { x: 64, y: 38, val: "100%", label: "0h" },
+        { x: 192, y: 39, val: "100%", label: "6h" },
+        { x: 320, y: 40, val: "100%", label: "24h" },
+        { x: 448, y: 42, val: "99.9%", label: "48h" },
+        { x: 586, y: 44, val: "99.9%", label: "72h" }
+      ],
+      pointsTier1: [
+        { x: 64, y: 56, val: "98%", label: "0h" },
+        { x: 192, y: 118, val: "86%", label: "6h" },
+        { x: 320, y: 185, val: "68%", label: "24h" },
+        { x: 448, y: 235, val: "52%", label: "48h" },
+        { x: 586, y: 266, val: "40%", label: "72h" }
+      ],
+      caption:
+        "Architecture Quantis-Stock : chaque point de vente encaisse, imprime et décrémente son stock en local (SQLite Drift) puis synchronise vers Spring Boot 4 / PostgreSQL 18 dès le retour du réseau."
+    },
+    latency: {
+      title: "Quantis-IA — Souveraineté d'Inférence Locale (OpenJarvis)",
+      kpiHero: "88,7 %",
+      kpiSub: "Requêtes résolues localement sans coût ni fuite API cloud",
+      legendQuantis: "Quantis-IA (OpenJarvis Local-First + Ollama)",
+      legendTier1: "Agents 100 % Cloud Externes",
+      yTicks: ["100%", "80%", "60%", "40%", "20%"],
+      xTicks: ["Chat", "Synthèse", "Voix ERP", "Audit Doc", "Multi-Agent"],
+      yAxisLabel: "Exécution Locale Souveraine",
+      xAxisLabel: "Complexité Tâche",
+      pointsQuantis: [
+        { x: 64, y: 38, val: "99%", label: "Chat" },
+        { x: 192, y: 46, val: "95%", label: "Synthèse" },
+        { x: 320, y: 54, val: "92%", label: "Voix ERP" },
+        { x: 448, y: 66, val: "89%", label: "Audit Doc" },
+        { x: 586, y: 80, val: "85%", label: "Multi-Agent" }
+      ],
+      pointsTier1: [
+        { x: 64, y: 256, val: "0% local", label: "Chat" },
+        { x: 192, y: 256, val: "0% local", label: "Synthèse" },
+        { x: 320, y: 248, val: "4% local", label: "Voix ERP" },
+        { x: 448, y: 246, val: "5% local", label: "Audit Doc" },
+        { x: 586, y: 240, val: "8% local", label: "Multi-Agent" }
+      ],
+      caption:
+        "Inspiré des travaux Intelligence Per Watt intégrés à OpenJarvis : Quantis-IA traite les requêtes courantes en local (Ollama + Rust) et n'invoque le cloud qu'en dernier recours."
+    },
+    automation: {
+      title: "Quantis-Phone — Qualité Audio Opus & Traversée NAT (VoIP / WebRTC)",
+      kpiHero: "99,8 %",
+      kpiSub: "Établissement d'appel & média chiffré SRTP via Asterisk + coturn",
+      legendQuantis: "Quantis-Phone (PJSIP + coturn ICE/TURN + LiveKit)",
+      legendTier1: "VoIP P2P sans Relais TURN",
+      yTicks: ["100%", "85%", "70%", "55%", "40%"],
+      xTicks: ["LAN", "Wi-Fi Pub", "4G/5G", "NAT Sym.", "Pare-feu"],
+      yAxisLabel: "Taux Connexion Audio/Vidéo",
+      xAxisLabel: "Profil Réseau",
+      pointsQuantis: [
+        { x: 64, y: 38, val: "100%", label: "LAN" },
+        { x: 192, y: 40, val: "99.9%", label: "Wi-Fi Pub" },
+        { x: 320, y: 42, val: "99.8%", label: "4G/5G" },
+        { x: 448, y: 45, val: "99.6%", label: "NAT Sym." },
+        { x: 586, y: 49, val: "99.4%", label: "Pare-feu" }
+      ],
+      pointsTier1: [
+        { x: 64, y: 48, val: "98%", label: "LAN" },
+        { x: 192, y: 98, val: "88%", label: "Wi-Fi Pub" },
+        { x: 320, y: 145, val: "76%", label: "4G/5G" },
+        { x: 448, y: 224, val: "52%", label: "NAT Sym." },
+        { x: 586, y: 262, val: "40%", label: "Pare-feu" }
+      ],
+      caption:
+        "Pile Quantis-Phone : signalisation SIP/TLS & WSS via Asterisk 20+, relais coturn pour traverser les pare-feux stricts et codec Opus 48 kHz résistant à la gigue."
+    },
+    durability: {
+      title: "Pérennité Architecturale & Maintenabilité (Principe 06)",
+      kpiHero: "10–30 Ans",
+      kpiSub: "Standard d'ingénierie QUANTIS sans dette technique jetable",
+      legendQuantis: "Architecture Évolutive QUANTIS",
+      legendTier1: "Logiciels Assemblés Sans Schéma",
+      yTicks: ["100", "80", "60", "40", "20"],
+      xTicks: ["An 1", "An 3", "An 5", "An 8", "An 10+"],
+      yAxisLabel: "Score Maintenabilité",
+      xAxisLabel: "Horizon d'Exploitation",
+      pointsQuantis: [
+        { x: 64, y: 36, val: "99/100", label: "An 1" },
+        { x: 192, y: 40, val: "98/100", label: "An 3" },
+        { x: 320, y: 44, val: "97/100", label: "An 5" },
+        { x: 448, y: 47, val: "96/100", label: "An 8" },
+        { x: 586, y: 50, val: "95/100", label: "An 10+" }
+      ],
+      pointsTier1: [
+        { x: 64, y: 80, val: "86/100", label: "An 1" },
+        { x: 192, y: 125, val: "72/100", label: "An 3" },
+        { x: 320, y: 178, val: "56/100", label: "An 5" },
+        { x: 448, y: 226, val: "41/100", label: "An 8" },
+        { x: 586, y: 258, val: "28/100", label: "An 10+" }
+      ],
+      caption:
+        "Principe 06 du Cahier Fondateur : découplage modulaire, bases relationnelles strictes et documentation claire pour traverser les décennies."
+    }
+  };
+
+  // Convertit une liste de points en chemin Bézier lissé (Catmull-Rom)
+  function buildSmoothPath(pts) {
+    if (!pts || pts.length < 2) return "";
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[Math.min(pts.length - 1, i + 2)];
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x} ${p2.y}`;
+    }
+    return d;
+  }
 
   const benchmarkTabs = document.querySelectorAll(".benchmark-tab");
   const benchmarkTitle = document.getElementById("benchmarkTitle");
   const benchmarkCaption = document.getElementById("benchmarkCaption");
+  const benchmarkKpiHero = document.getElementById("benchmarkKpiHero");
+  const benchmarkKpiSub = document.getElementById("benchmarkKpiSub");
+  const legendQuantisLabel = document.getElementById("legendQuantisLabel");
+  const legendTier1Label = document.getElementById("legendTier1Label");
   const pathQuantis = document.getElementById("pathQuantis");
+  const pathQuantisArea = document.getElementById("pathQuantisArea");
   const pathTier1 = document.getElementById("pathTier1");
   const pointsContainer = document.getElementById("benchmarkPoints");
+  const axesContainer = document.getElementById("benchmarkAxesTicks");
   const yAxisTitle = document.getElementById("yAxisTitle");
   const xAxisTitle = document.getElementById("xAxisTitle");
+  const benchTooltip = document.getElementById("benchTooltip");
+  const benchHoverLine = document.getElementById("benchHoverLine");
+  const benchSvg = document.getElementById("benchmarkSvg");
+
+  let activeBenchData = benchmarkData.resilience;
 
   function renderBenchmark(key) {
     const data = benchmarkData[key];
     if (!data) return;
+    activeBenchData = data;
+
     if (benchmarkTitle) benchmarkTitle.textContent = data.title;
     if (benchmarkCaption) benchmarkCaption.textContent = data.caption;
+    if (benchmarkKpiHero) benchmarkKpiHero.textContent = data.kpiHero;
+    if (benchmarkKpiSub) benchmarkKpiSub.textContent = data.kpiSub;
+    if (legendQuantisLabel) legendQuantisLabel.textContent = data.legendQuantis;
+    if (legendTier1Label) legendTier1Label.textContent = data.legendTier1;
     if (yAxisTitle) yAxisTitle.textContent = data.yAxisLabel;
     if (xAxisTitle) xAxisTitle.textContent = data.xAxisLabel;
-    const dQ = data.pointsQuantis.reduce((a, pt, i) => `${a} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`, '');
-    const dT = data.pointsTier1.reduce((a, pt, i) => `${a} ${i === 0 ? 'M' : 'L'} ${pt.x} ${pt.y}`, '');
-    if (pathQuantis) pathQuantis.setAttribute("d", dQ);
-    if (pathTier1) pathTier1.setAttribute("d", dT);
-    if (pointsContainer) {
-      pointsContainer.innerHTML = '';
-      data.pointsQuantis.forEach(pt => {
-        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y); c.setAttribute("r", 5);
-        c.setAttribute("fill", "#38bdf8"); c.setAttribute("stroke", "#fff"); c.setAttribute("stroke-width", "2");
-        c.style.cursor = "pointer"; c.innerHTML = `<title>QUANTIS: ${pt.val}</title>`;
-        pointsContainer.appendChild(c);
+
+    const dQ = buildSmoothPath(data.pointsQuantis);
+    const dT = buildSmoothPath(data.pointsTier1);
+    const firstQ = data.pointsQuantis[0];
+    const lastQ = data.pointsQuantis[data.pointsQuantis.length - 1];
+    const dArea = `${dQ} L ${lastQ.x} 274 L ${firstQ.x} 274 Z`;
+
+    if (pathQuantis) {
+      pathQuantis.setAttribute("d", dQ);
+      const len = pathQuantis.getTotalLength ? pathQuantis.getTotalLength() : 700;
+      pathQuantis.style.strokeDasharray = `${len}`;
+      pathQuantis.style.strokeDashoffset = `${len}`;
+      requestAnimationFrame(() => {
+        pathQuantis.style.transition = "stroke-dashoffset 0.85s cubic-bezier(0.16, 1, 0.3, 1)";
+        pathQuantis.style.strokeDashoffset = "0";
       });
-      data.pointsTier1.forEach(pt => {
+    }
+    if (pathQuantisArea) pathQuantisArea.setAttribute("d", dArea);
+    if (pathTier1) pathTier1.setAttribute("d", dT);
+
+    // Ticks X & Y
+    if (axesContainer) {
+      const yCoords = [38, 97, 156, 215, 274];
+      const yHtml = data.yTicks
+        .map(
+          (lbl, i) =>
+            `<text x="50" y="${yCoords[i] + 4}" text-anchor="end" fill="#59638d" font-size="10.5" font-family="'JetBrains Mono', monospace">${lbl}</text>`
+        )
+        .join("");
+      const xHtml = data.pointsQuantis
+        .map(
+          (pt, i) =>
+            `<text x="${pt.x}" y="294" text-anchor="middle" fill="#59638d" font-size="10.5" font-family="'JetBrains Mono', monospace">${data.xTicks[i]}</text>`
+        )
+        .join("");
+      axesContainer.innerHTML = yHtml + xHtml;
+    }
+
+    if (pointsContainer) {
+      pointsContainer.innerHTML = "";
+      data.pointsQuantis.forEach((pt, idx) => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        const halo = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        halo.setAttribute("cx", pt.x);
+        halo.setAttribute("cy", pt.y);
+        halo.setAttribute("r", 10);
+        halo.setAttribute("fill", "rgba(24, 32, 120, 0.14)");
+
+        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        c.setAttribute("cx", pt.x);
+        c.setAttribute("cy", pt.y);
+        c.setAttribute("r", 4.8);
+        c.setAttribute("fill", "#182078");
+        c.setAttribute("stroke", "#ffffff");
+        c.setAttribute("stroke-width", "2.2");
+        c.dataset.idx = String(idx);
+
+        g.appendChild(halo);
+        g.appendChild(c);
+        pointsContainer.appendChild(g);
+      });
+
+      data.pointsTier1.forEach((pt) => {
         const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        r.setAttribute("x", pt.x - 4); r.setAttribute("y", pt.y - 4);
-        r.setAttribute("width", 8); r.setAttribute("height", 8);
-        r.setAttribute("fill", "#c5a059"); r.style.cursor = "pointer";
-        r.innerHTML = `<title>Concurrent: ${pt.val}</title>`;
+        r.setAttribute("x", pt.x - 3.5);
+        r.setAttribute("y", pt.y - 3.5);
+        r.setAttribute("width", 7);
+        r.setAttribute("height", 7);
+        r.setAttribute("rx", 1.5);
+        r.setAttribute("fill", "#d0a830");
         pointsContainer.appendChild(r);
       });
     }
   }
 
-  benchmarkTabs.forEach(btn => {
+  // Tooltip interactif au survol du graphe SVG
+  if (benchSvg && benchTooltip && benchHoverLine) {
+    benchSvg.addEventListener("mousemove", (e) => {
+      const rect = benchSvg.getBoundingClientRect();
+      const relX = ((e.clientX - rect.left) / rect.width) * 640;
+      const pts = activeBenchData.pointsQuantis;
+      let nearestIdx = 0;
+      let minDist = Infinity;
+      pts.forEach((pt, idx) => {
+        const d = Math.abs(pt.x - relX);
+        if (d < minDist) {
+          minDist = d;
+          nearestIdx = idx;
+        }
+      });
+
+      const qPt = activeBenchData.pointsQuantis[nearestIdx];
+      const tPt = activeBenchData.pointsTier1[nearestIdx];
+
+      benchHoverLine.setAttribute("x1", qPt.x);
+      benchHoverLine.setAttribute("x2", qPt.x);
+      benchHoverLine.style.opacity = "1";
+
+      benchTooltip.style.opacity = "1";
+      benchTooltip.style.left = `${(qPt.x / 640) * 100}%`;
+      const shiftX = qPt.x < 160 ? "-15%" : qPt.x > 480 ? "-85%" : "-50%";
+      benchTooltip.style.transform = `translateX(${shiftX})`;
+      benchTooltip.innerHTML = `
+        <div class="bt-head">${qPt.label} · ${activeBenchData.xAxisLabel}</div>
+        <div class="bt-row"><span class="bt-dot q"></span>QUANTIS : <strong>${qPt.val}</strong></div>
+        <div class="bt-row"><span class="bt-dot t"></span>Standard : <strong>${tPt.val}</strong></div>
+      `;
+    });
+
+    benchSvg.addEventListener("mouseleave", () => {
+      benchHoverLine.style.opacity = "0";
+      benchTooltip.style.opacity = "0";
+    });
+  }
+
+  benchmarkTabs.forEach((btn) => {
     btn.addEventListener("click", () => {
-      benchmarkTabs.forEach(b => b.classList.remove("active"));
+      benchmarkTabs.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       renderBenchmark(btn.getAttribute("data-bench"));
     });
   });
   renderBenchmark("resilience");
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 7. DOMAINS SHOWCASE
-  // ═══════════════════════════════════════════════════════════════════════════
-  const domainData = {
-    mobile: { category: "INGÉNIERIE MOBILE", badge: "● OFFLINE-FIRST & NATIVE", title: "Applications Mobiles Haute Performance", desc: "Conçues pour fonctionner parfaitement même sans réseau Internet. Synchronisation delta haute fréquence, chiffrement local biométrique, et intégration transparente des terminaux d'encaissement et de scan code-barres.", img: "img_service_mobile.jpg", specs: [{ val: "< 16ms", label: "Temps de rendu par trame (60 FPS fluide)" }, { val: "100%", label: "Fonctionnalités opérationnelles hors-ligne" }], tags: ["Flutter", "React Native", "Local SQLite Chiffré", "Biométrie", "iOS & Android"] },
-    desktop: { category: "LOGICIELS MÉTIERS", badge: "● ERP & WORKSTATION", title: "Systèmes Desktop & Postes d'Opérations", desc: "Logiciels d'entreprise robustes pour Windows, macOS et Linux. Gestion intégrale de chaîne logistique, point de vente (POS) ultra-réactif, comptabilité et tableaux de bord analytiques temps réel.", img: "img_service_desktop.jpg", specs: [{ val: "< 0.3s", label: "Génération de facture & ticket de caisse" }, { val: "Multi-OS", label: "Exécution native multiplateforme" }], tags: ["Electron", ".NET Core", "Spring Boot", "Multi-Tenant", "Gestion de Caisse"] },
-    web: { category: "PLATEFORMES WEB & SAAS", badge: "● PWA & CLOUD NATIVE", title: "Portails Web & Solutions SaaS Résilientes", desc: "Applications web progressives à très haute disponibilité. Architectures microservices scalables, interfaces réactives à l'extrême, optimisation SEO et sécurité applicative de niveau bancaire.", img: "img_service_web.jpg", specs: [{ val: "100/100", label: "Score Google Lighthouse Performance & SEO" }, { val: "Zero-Trust", label: "Chiffrement TLS 1.3 de bout en bout" }], tags: ["React", "Next.js", "Spring Boot", "PWA", "PostgreSQL", "Docker"] },
-    network: { category: "INFRASTRUCTURES SOUVERAINES", badge: "● ZERO-TRUST & ROUTAGE 100G", title: "Infrastructures Réseau & Matériels Souverains", desc: "Conception, sécurisation et déploiement d'architectures réseau critiques. Routage dynamique, segmentation Zero-Trust, pare-feux nouvelle génération et monitoring proactif 24h/24.", img: "img_service_network.jpg", specs: [{ val: "< 0.8ms", label: "Latence interne sur cœur de réseau" }, { val: "24/7", label: "Supervision temps réel et alerte automatique" }], tags: ["Cisco & Fortinet", "VLAN / SD-WAN", "Châssis Quantis 001", "Fibre Optique"] },
-    cabling: { category: "GÉNIE PHYSIQUE & CÂBLAGE", badge: "● CERTIFICATION FLUKE", title: "Câblage Structuré & Réseaux Fibre Optique", desc: "Déploiement physique dans les règles de l'art : baies de brassage ordonnées au millimètre, câblage cuivre Cat6A blindé, soudures optiques haute précision et certification officielle aux normes TIA/EIA.", img: "img_service_cabling.jpg", specs: [{ val: "100%", label: "Liaisons certifiées par réflectométrie Fluke" }, { val: "25 Ans", label: "Garantie de pérennité de l'infrastructure" }], tags: ["Fibre Monomode/Multimode", "Cat6A F/UTP", "Baies de Brassage", "Normes TIA/EIA"] },
-    ai: { category: "INTELLIGENCE ARTIFICIELLE", badge: "● JARVIS CORE AGENTIC AI", title: "IA Conversationnelle & Assistants Autonomes", desc: "Jarvis Core : le cerveau autonome d'entreprise. Analyse prédictive des réapprovisionnements, reconnaissance vocale naturelle multilingue, et automatisation des décisions complexes sans intervention humaine.", img: "img_service_ai.jpg", specs: [{ val: "94%", label: "Tâches de décision courantes automatisées" }, { val: "Local First", label: "Traitement Edge préservant la souveraineté" }], tags: ["Agentic AI", "NLP & Speech-to-Text", "Analyse Prédictive", "Jarvis Core", "Edge ML"] }
-  };
-
-  const domainTabs = document.querySelectorAll(".domain-tab");
-  const domainCat = document.getElementById("domainCat");
-  const domainBadge = document.getElementById("domainBadge");
-  const domainTitle = document.getElementById("domainTitle");
-  const domainDesc = document.getElementById("domainDesc");
-  const domainImg = document.getElementById("domainImg");
-  const domainSpecs = document.getElementById("domainSpecs");
-  const domainTags = document.getElementById("domainTags");
-
-  function renderDomain(key) {
-    const item = domainData[key];
-    if (!item) return;
-    if (domainCat) domainCat.textContent = item.category;
-    if (domainBadge) domainBadge.textContent = item.badge;
-    if (domainTitle) domainTitle.textContent = item.title;
-    if (domainDesc) domainDesc.textContent = item.desc;
-    if (domainImg) {
-      domainImg.style.opacity = "0";
-      setTimeout(() => { domainImg.src = item.img; domainImg.alt = item.title; domainImg.style.opacity = "1"; }, 150);
-    }
-    if (domainSpecs) {
-      domainSpecs.innerHTML = item.specs.map(s => `<div class="domain-spec-box"><div class="domain-spec-val">${s.val}</div><div class="domain-spec-label">${s.label}</div></div>`).join('');
-    }
-    if (domainTags) {
-      domainTags.innerHTML = item.tags.map(t => `<span class="domain-tag-item">${t}</span>`).join('');
-    }
-  }
-
-  domainTabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-      domainTabs.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      renderDomain(btn.getAttribute("data-domain"));
+  // --------------------------------------------------------------------------
+  // 8. FORMULAIRE DE CONTACT INTELLIGENT (BRIEF + EMAIL / WHATSAPP)
+  // --------------------------------------------------------------------------
+  const topicChips = document.querySelectorAll(".topic-chip");
+  const sujetInput = document.getElementById("sujet");
+  topicChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      topicChips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      if (sujetInput) {
+        sujetInput.value = chip.getAttribute("data-topic") || chip.textContent.trim();
+        sujetInput.focus();
+      }
     });
   });
-  renderDomain("mobile");
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 8. CONTACT FORM
-  // ═══════════════════════════════════════════════════════════════════════════
   const contactForm = document.getElementById("contactForm");
-  const btnSubmit = document.getElementById("btnSubmit");
-  if (contactForm && btnSubmit) {
+  const contactSuccessPanel = document.getElementById("contactSuccessPanel");
+  const btnMailtoSend = document.getElementById("btnMailtoSend");
+  const btnWhatsappSend = document.getElementById("btnWhatsappSend");
+  const btnCopyBrief = document.getElementById("btnCopyBrief");
+  const btnResetForm = document.getElementById("btnResetForm");
+
+  if (contactForm && contactSuccessPanel) {
+    let lastBriefText = "";
+
     contactForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const orig = btnSubmit.innerHTML;
-      btnSubmit.disabled = true;
-      btnSubmit.innerHTML = "Transmission en cours...";
-      setTimeout(() => {
-        btnSubmit.style.background = "#059669"; btnSubmit.style.color = "#fff";
-        btnSubmit.innerHTML = "✓ Message Transmis avec Succès à QUANTIS";
-        contactForm.reset();
-        setTimeout(() => { btnSubmit.style.background = ""; btnSubmit.style.color = ""; btnSubmit.innerHTML = orig; btnSubmit.disabled = false; }, 4000);
-      }, 1000);
+      const nom = (document.getElementById("nom")?.value || "").trim();
+      const email = (document.getElementById("email")?.value || "").trim();
+      const sujet = (document.getElementById("sujet")?.value || "").trim();
+      const message = (document.getElementById("message")?.value || "").trim();
+
+      lastBriefText =
+        `[BRIEF PROJET QUANTIS]\n` +
+        `Nom : ${nom}\n` +
+        `Email : ${email}\n` +
+        `Pôle / Objet : ${sujet}\n\n` +
+        `Détails :\n${message}`;
+
+      if (btnMailtoSend) {
+        const mailUrl = `mailto:contactquantisbf@gmail.com?subject=${encodeURIComponent(
+          `[QUANTIS] ${sujet} — ${nom}`
+        )}&body=${encodeURIComponent(lastBriefText)}`;
+        btnMailtoSend.setAttribute("href", mailUrl);
+      }
+
+      if (btnWhatsappSend) {
+        const waUrl = `https://wa.me/22665189261?text=${encodeURIComponent(
+          lastBriefText
+        )}`;
+        btnWhatsappSend.setAttribute("href", waUrl);
+      }
+
+      contactForm.style.display = "none";
+      contactSuccessPanel.hidden = false;
     });
+
+    if (btnCopyBrief) {
+      btnCopyBrief.addEventListener("click", async () => {
+        if (!lastBriefText) return;
+        try {
+          await navigator.clipboard.writeText(lastBriefText);
+          btnCopyBrief.textContent = "Brief copié dans le presse-papiers";
+          setTimeout(() => {
+            btnCopyBrief.textContent = "Copier le brief";
+          }, 2500);
+        } catch (err) {
+          btnCopyBrief.textContent = "Utilisez Email ou WhatsApp ci-dessus";
+        }
+      });
+    }
+
+    if (btnResetForm) {
+      btnResetForm.addEventListener("click", () => {
+        contactForm.reset();
+        topicChips.forEach((c) => c.classList.remove("active"));
+        contactSuccessPanel.hidden = true;
+        contactForm.style.display = "flex";
+      });
+    }
   }
 });

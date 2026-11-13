@@ -21,5 +21,4 @@ QUANTIS refuse le logiciel jetable et conçoit des systèmes robustes conçus po
 
 ## Liens Utiles
 - Site Officiel : https://quantisbf.com/
-- Cartes Studio : https://quantisbf.com/cartes.html
-- Contact : contact@quantis.tech
+- Contact : contactquantisbf@gmail.com
