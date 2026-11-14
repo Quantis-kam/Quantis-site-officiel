@@ -6,7 +6,7 @@
  *   Acte II  (#manifeste)  : Morphing GPU vers le Monogramme Souverain Q↗
  *   Acte III (#domaines)   : Topologie Ondulante & Flux Multi-Domaine
  *   Acte IV  (#benchmarks) : Grille de Télémétrie & Ondes de Résilience
- *   Acte V   (#principes)  : Heptagramme Sacré des 7 Principes Non Négociables
+ *   Acte V   (#principes)  : Les 7 Piliers Architecturaux des Principes Quantis
  *   Acte VI  (#horizon)    : Tunnel Stellaire Horizon 2040+
  * ============================================================================
  */
@@ -367,38 +367,78 @@
       return arr;
     }
 
-    // 2.4 Générateur État 3 : Heptagramme Sacré des 7 Principes (Étoile {7/3} + 7 Pôles)
+    // 2.4 Générateur État 3 : Les 7 Piliers Architecturaux Ascendants + Pont Doré
     function genSevenPrinciples(N) {
       const arr = new Float32Array(N * 3);
-      const petals = 7;
-      const R = 12.6;
-      const starN = Math.floor(N * 0.62);
-      const ringN7 = Math.floor(N * 0.18);
+      const pillars = 7;
+      const bodyEnd = Math.floor(N * 0.68); // Bleu saphir/royal pour les 7 colonnes
+      const goldEnd = Math.floor(N * 0.90); // Or satiné (aligné sur la plage dorée) pour sommets & arc de liaison
+      const yBase = -6.8;
+
+      const pillarX = (p) => (p - 3) * 4.4;
+      const pillarZ = (p) => -Math.pow((p - 3) / 3, 2) * 3.6;
+      const pillarH = (p) => 6.2 + p * 1.45;
+
       for (let i = 0; i < N; i++) {
-        if (i < starN) {
-          // 7 cordes géométriques reliant chaque sommet p à (p + 3) mod 7
-          const edgeIdx = i % petals;
-          const frac = (Math.floor(i / petals) / Math.max(1, Math.floor(starN / petals)));
-          const a1 = (edgeIdx * Math.PI * 2) / petals - Math.PI / 2;
-          const a2 = (((edgeIdx + 3) % petals) * Math.PI * 2) / petals - Math.PI / 2;
-          const spread = (Math.random() - 0.5) * 0.34;
-          arr[i * 3] = Math.cos(a1) * R * (1 - frac) + Math.cos(a2) * R * frac + spread;
-          arr[i * 3 + 1] = Math.sin(a1) * R * (1 - frac) + Math.sin(a2) * R * frac + spread;
-          arr[i * 3 + 2] = Math.sin(frac * Math.PI) * 1.6 + (Math.random() - 0.5) * 0.5;
-        } else if (i < starN + ringN7) {
-          const th = ((i - starN) / ringN7) * Math.PI * 2;
-          const sp = (Math.random() - 0.5) * 0.38;
-          arr[i * 3] = Math.cos(th) * (R + sp);
-          arr[i * 3 + 1] = Math.sin(th) * (R + sp);
-          arr[i * 3 + 2] = (Math.random() - 0.5) * 0.8;
+        if (i < bodyEnd) {
+          // 7 monolithes prismatiques verticaux disposés en amphithéâtre ascendant
+          const p = i % pillars;
+          const hNorm = Math.random();
+          const h = pillarH(p);
+          const halfW = 0.88 - hNorm * 0.14; // Léger fuseau architectural
+          const face = Math.floor(Math.random() * 4);
+          let lx = 0;
+          let lz = 0;
+          const tEdge = (Math.random() - 0.5) * 2.0 * halfW;
+          if (face === 0) {
+            lx = tEdge;
+            lz = halfW;
+          } else if (face === 1) {
+            lx = tEdge;
+            lz = -halfW;
+          } else if (face === 2) {
+            lx = halfW;
+            lz = tEdge;
+          } else {
+            lx = -halfW;
+            lz = tEdge;
+          }
+          arr[i * 3] = pillarX(p) + lx + (Math.random() - 0.5) * 0.12;
+          arr[i * 3 + 1] = yBase + hNorm * h;
+          arr[i * 3 + 2] = pillarZ(p) + lz + (Math.random() - 0.5) * 0.12;
+        } else if (i < goldEnd) {
+          const k = i - bodyEnd;
+          const segLen = goldEnd - bodyEnd;
+          if (k < segLen * 0.45) {
+            // Couronnes dorées lumineuses au sommet de chacun des 7 piliers
+            const p = k % pillars;
+            const yTop = yBase + pillarH(p);
+            const rx = (Math.random() - 0.5) * 2.1;
+            const rz = (Math.random() - 0.5) * 2.1;
+            arr[i * 3] = pillarX(p) + rx;
+            arr[i * 3 + 1] = yTop + 0.25 + (Math.random() - 0.5) * 0.45;
+            arr[i * 3 + 2] = pillarZ(p) + rz;
+          } else {
+            // Trajectoire ascendante dorée reliant continûment les 7 sommets
+            const u = Math.random();
+            const pFloat = u * (pillars - 1);
+            const strand = (k % 2 === 0 ? 1 : -1) * 0.35;
+            const xPos = (pFloat - 3) * 4.4;
+            const zPos = -Math.pow((pFloat - 3) / 3, 2) * 3.6 + strand;
+            const yTopInterp = yBase + (6.2 + pFloat * 1.45);
+            const arcLift = Math.sin(u * Math.PI) * 1.1;
+            arr[i * 3] = xPos + (Math.random() - 0.5) * 0.25;
+            arr[i * 3 + 1] = yTopInterp + 1.05 + arcLift + (Math.random() - 0.5) * 0.3;
+            arr[i * 3 + 2] = zPos + (Math.random() - 0.5) * 0.25;
+          }
         } else {
-          const lobe = i % petals;
-          const a = (lobe * Math.PI * 2) / petals - Math.PI / 2;
-          const rr = Math.pow(Math.random(), 0.7) * 1.45;
-          const ra = Math.random() * Math.PI * 2;
-          arr[i * 3] = Math.cos(a) * R + Math.cos(ra) * rr;
-          arr[i * 3 + 1] = Math.sin(a) * R + Math.sin(ra) * rr;
-          arr[i * 3 + 2] = (Math.random() - 0.5) * 1.1;
+          // Rails porteurs parallèles formant le socle architectural des 7 piliers
+          const u = Math.random();
+          const pFloat = u * (pillars - 1);
+          const rail = ((i % 2) * 2 - 1) * 1.15;
+          arr[i * 3] = (pFloat - 3) * 4.4 + (Math.random() - 0.5) * 0.2;
+          arr[i * 3 + 1] = yBase - 0.25 + (Math.random() - 0.5) * 0.25;
+          arr[i * 3 + 2] = -Math.pow((pFloat - 3) / 3, 2) * 3.6 + rail;
         }
       }
       return arr;

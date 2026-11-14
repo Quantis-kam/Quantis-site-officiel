@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     desktop: {
       index: "02 / 06",
       category: "ERP & LOGICIELS DESKTOP",
-      badge: "QUANTIS-STOCK ENGINE · JAVA 21 & FLUTTER",
+      badge: "Quantis-Stock Engine · JAVA 21 & FLUTTER",
       title: "Progiciels de Gestion & Postes d'Opérations",
       desc: "Cœur de Quantis-Stock : gestion commerciale multi-dépôts, caisse POS tactile, inventaires avec calcul d'écarts, facturation séquentielle FCFA / TVA 18 % (IFU & RCCM) et suivi strict des créances.",
       img: "img_service_desktop.jpg",
@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     network: {
       index: "04 / 06",
       category: "TÉLÉPHONIE IP & RÉSEAUX D'ENTREPRISE",
-      badge: "QUANTIS-PHONE · ASTERISK PJSIP & ZERO-TRUST",
+      badge: "Quantis-Phone · ASTERISK PJSIP & ZERO-TRUST",
       title: "Communications Unifiées VoIP & Cœurs Réseau",
       desc: "Propulse Quantis-Phone : standard téléphonique Asterisk 20+ (PJSIP), visioconférence multi-participants LiveKit SFU, traversée NAT symétrique coturn et segmentation VLAN sécurisée.",
       img: "img_service_network.jpg",
@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ai: {
       index: "06 / 06",
       category: "INTELLIGENCE ARTIFICIELLE SOUVERAINE",
-      badge: "QUANTIS-IA · OPENJARVIS & QUANTIS VOICE",
+      badge: "Quantis-IA · OPENJARVIS & Quantis Voice",
       title: "Agents Autonomes Local-First & Pilotage Vocal",
       desc: "Moteur Quantis-IA basé sur OpenJarvis : vos assistants et analyses tournent en priorité sur vos propres machines via Ollama et Python/Rust, avec réveil vocal par double-clap intégré directement à Quantis-Stock.",
       img: "img_service_ai.jpg",
@@ -587,8 +587,8 @@ document.addEventListener("DOMContentLoaded", () => {
     durability: {
       title: "Pérennité Architecturale & Maintenabilité (Principe 06)",
       kpiHero: "10–30 Ans",
-      kpiSub: "Standard d'ingénierie QUANTIS sans dette technique jetable",
-      legendQuantis: "Architecture Évolutive QUANTIS",
+      kpiSub: "Standard d'ingénierie Quantis sans dette technique jetable",
+      legendQuantis: "Architecture Évolutive Quantis",
       legendTier1: "Logiciels Assemblés Sans Schéma",
       yTicks: ["100", "80", "60", "40", "20"],
       xTicks: ["An 1", "An 3", "An 5", "An 8", "An 10+"],
@@ -768,7 +768,7 @@ document.addEventListener("DOMContentLoaded", () => {
       benchTooltip.style.transform = `translateX(${shiftX})`;
       benchTooltip.innerHTML = `
         <div class="bt-head">${qPt.label} · ${activeBenchData.xAxisLabel}</div>
-        <div class="bt-row"><span class="bt-dot q"></span>QUANTIS : <strong>${qPt.val}</strong></div>
+        <div class="bt-row"><span class="bt-dot q"></span>Quantis : <strong>${qPt.val}</strong></div>
         <div class="bt-row"><span class="bt-dot t"></span>Standard : <strong>${tPt.val}</strong></div>
       `;
     });
@@ -822,7 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const message = (document.getElementById("message")?.value || "").trim();
 
       lastBriefText =
-        `[BRIEF PROJET QUANTIS]\n` +
+        `[BRIEF PROJET Quantis]\n` +
         `Nom : ${nom}\n` +
         `Email : ${email}\n` +
         `Pôle / Objet : ${sujet}\n\n` +
@@ -830,7 +830,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (btnMailtoSend) {
         const mailUrl = `mailto:contactquantisbf@gmail.com?subject=${encodeURIComponent(
-          `[QUANTIS] ${sujet} — ${nom}`
+          `[Quantis] ${sujet} — ${nom}`
         )}&body=${encodeURIComponent(lastBriefText)}`;
         btnMailtoSend.setAttribute("href", mailUrl);
       }

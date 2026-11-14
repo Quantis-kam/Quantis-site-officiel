@@ -134,7 +134,7 @@
       { y: -1.12, label: "POSTGRESQL 18 · AUDIT & TVA 18%", color: 0x101858, accent: 0xd0a830 },
       { y: -0.37, label: "SPRING BOOT 4 · RBAC 5 RÔLES & JWT", color: 0x182078, accent: 0x7c95ff },
       { y: 0.38, label: "SQLITE DRIFT · SYNC OFFLINE-FIRST FCFA", color: 0x0b1240, accent: 0xe2b94f },
-      { y: 1.13, label: "FLUTTER DESKTOP & ANDROID · QUANTIS VOICE", color: 0x2233a6, accent: 0xf6f7fb }
+      { y: 1.13, label: "FLUTTER DESKTOP & ANDROID · Quantis Voice", color: 0x2233a6, accent: 0xf6f7fb }
     ];
 
     const erpLayers = [];

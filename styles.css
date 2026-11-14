@@ -149,9 +149,9 @@ body {
 }
 .preloader-sub {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   color: var(--gold-200);
 }
 @keyframes qSpin { to { transform: rotate(360deg); } }
@@ -582,8 +582,7 @@ main {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0.14em;
   padding: 6px 14px;
   border-radius: var(--radius-pill);
   margin-bottom: 16px;
@@ -734,10 +733,9 @@ main {
 .hero-brand-kicker {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: 0.2em;
   color: var(--gold-400);
   margin-bottom: 14px;
 }
@@ -1786,9 +1784,9 @@ main {
 }
 .manifesto-quote-cite {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   color: var(--gold-200);
 }
 
